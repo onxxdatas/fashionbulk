@@ -9,19 +9,17 @@ NGINX_SITE="/etc/nginx/sites-available/fashionbulk"
 echo "[1/6] Ensuring directories exist"
 sudo mkdir -p "$APP_DIR" "$FRONTEND_DIR" /etc/nginx/sites-available /etc/nginx/sites-enabled
 
-echo "[2/6] Syncing backend code"
-rsync -a --delete "${APP_DIR}/backend/" "$APP_DIR/" || true
-# The above line is intentionally defensive; the workflow copies the repo into APP_DIR first.
+cd "$APP_DIR"
+
+echo "[2/6] Installing backend dependencies"
+python3 -m venv venv
+./venv/bin/pip install --upgrade pip
+./venv/bin/pip install -r backend/requirements.txt
 
 echo "[3/6] Syncing frontend to Nginx root"
 sudo rm -rf "$FRONTEND_DIR"/*
-sudo cp -r "${APP_DIR}/frontend/." "$FRONTEND_DIR/"
-
-echo "[4/6] Installing backend dependencies"
-cd "$APP_DIR"
-python3 -m venv venv
-./venv/bin/pip install --upgrade pip
-./venv/bin/pip install -r requirements.txt
+sudo mkdir -p "$FRONTEND_DIR"
+sudo cp -r "$APP_DIR/frontend/." "$FRONTEND_DIR/"
 
 echo "[5/6] Creating systemd service"
 sudo tee "$SERVICE_FILE" > /dev/null <<'EOF'

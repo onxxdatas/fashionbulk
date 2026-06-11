@@ -17,3 +17,12 @@ Create these repository secrets in GitHub:
 Push to `main` and GitHub Actions will run automatically.
 
 You can also run the workflow manually from the Actions tab.
+
+## Domain setup on your registrar
+After the EC2 instance is running, point these DNS records to the EC2 public IP:
+- `api.onxxdatas.space` → `A` record → your EC2 public IP
+- `fashionbulk.onxxdatas.space` → `A` record → your EC2 public IP
+
+This lets Nginx serve:
+- `https://api.onxxdatas.space` for the FastAPI backend
+- `https://fashionbulk.onxxdatas.space` for the static frontend
