@@ -57,29 +57,61 @@
   </article>
 </section>
 
-<!-- ===== CATALOG PAGE ===== -->
+<!-- ===== CRM DASHBOARD PAGE ===== -->
 <section class="page" id="page-catalog" style="display:none">
   <div class="page-header">
-    <h2>Lead board</h2>
+    <h2>Sales pipeline</h2>
     <div class="filters">
-      <input class="search-input" type="text" id="search-input" placeholder="Search products…" oninput="filterProducts()" />
-      <select id="cat-filter" onchange="filterProducts()">
-        <option value="">All categories</option>
-      </select>
+      <button class="btn btn-outline" type="button" onclick="selectDeal('deal-1')">Focus top deal</button>
+      <button class="btn btn-primary" type="button" onclick="selectDeal('deal-4')">Open renewal</button>
     </div>
   </div>
-  <div class="product-grid" id="product-grid">
-    <div class="loading">Loading products…</div>
+
+  <div class="dashboard-grid">
+    <article class="dashboard-panel">
+      <div class="panel-label">Open opportunities</div>
+      <div id="deal-list" class="deal-list"></div>
+    </article>
+
+    <article class="dashboard-panel dashboard-panel-accent" id="deal-detail">
+      <div class="panel-label">Selected deal</div>
+      <h3 id="deal-title">Loading deal…</h3>
+      <p id="deal-summary" class="muted-text"></p>
+      <ul id="deal-points" class="detail-points"></ul>
+      <div class="detail-actions">
+        <button class="btn btn-primary" type="button">Schedule follow-up</button>
+        <button class="btn btn-outline" type="button">Send proposal</button>
+      </div>
+    </article>
   </div>
 </section>
 
-<!-- ===== ORDERS PAGE ===== -->
+<!-- ===== PRODUCT / CRM CARD PAGE ===== -->
 <section class="page" id="page-orders" style="display:none">
   <div class="page-header">
-    <h2>Deal pipeline</h2>
+    <h2>Product & account view</h2>
+    <div class="filters">
+      <button class="btn btn-outline" type="button" onclick="selectProduct('prod-1')">Highlight flagship</button>
+      <button class="btn btn-primary" type="button" onclick="selectProduct('prod-4')">Show renewal pack</button>
+    </div>
   </div>
-  <div id="orders-list">
-    <div class="loading">Loading orders…</div>
+
+  <div class="dashboard-grid dashboard-grid-two">
+    <article class="dashboard-panel">
+      <div class="panel-label">Clickable product cards</div>
+      <div class="product-grid" id="crm-product-grid"></div>
+    </article>
+
+    <article class="dashboard-panel" id="product-detail">
+      <div class="panel-label">Selected product</div>
+      <h3 id="product-title">Loading product…</h3>
+      <p id="product-description" class="muted-text"></p>
+      <div class="mini-metrics" id="product-metrics"></div>
+      <div class="detail-actions">
+        <button class="btn btn-primary" type="button">Add to account plan</button>
+        <button class="btn btn-outline" type="button">Share to team</button>
+      </div>
+    </article>
   </div>
 </section>
 
@@ -157,12 +189,28 @@
   let cart = JSON.parse(localStorage.getItem("fb_cart") || "[]");
   let allProducts = [];
   let currentProduct = null;
+  const crmDeals = [
+    { id: 'deal-1', name: 'Enterprise renewal', stage: 'Proposal sent', owner: 'Sara', score: 'High', summary: 'Quarterly contract renewal with 3 strategic accounts needing approval this week.', points: ['3 accounts in review', 'Pricing approved by finance', 'Decision meeting on Friday'] },
+    { id: 'deal-2', name: 'Mid-market upsell', stage: 'Discovery', owner: 'Leo', score: 'Medium', summary: 'New expansion opportunity for the onboarding team after the last implementation win.', points: ['6 new contacts added', 'Pilot package requested', 'Demo scheduled for tomorrow'] },
+    { id: 'deal-3', name: 'Partner referral', stage: 'Negotiation', owner: 'Maya', score: 'High', summary: 'Referral from a regional partner with strong budget and clear implementation needs.', points: ['Budget confirmed', 'Legal review started', 'Next call with COO'] },
+    { id: 'deal-4', name: 'Renewal risk watch', stage: 'Follow-up', owner: 'Jon', score: 'Urgent', summary: 'At-risk renewal that needs a fast recovery plan to protect recurring revenue.', points: ['Churn risk flagged', 'Executive sponsor engaged', 'Recovery task list ready'] }
+  ];
+  const crmProducts = [
+    { id: 'prod-1', name: 'Pipeline Pulse', category: 'Analytics', price: 89, status: 'Live', description: 'A real-time dashboard for forecasting, stage health, and revenue movement.', metrics: ['92% win rate', '18 open deals', '24h refresh'] },
+    { id: 'prod-2', name: 'Lead Concierge', category: 'Automation', price: 64, status: 'Beta', description: 'Automates reminders, route assignments, and follow-up nudges for busy teams.', metrics: ['8 automations active', '2 hrs saved/week', '1-click handoff'] },
+    { id: 'prod-3', name: 'Client Hub', category: 'Portal', price: 112, status: 'Popular', description: 'A secure portal for client notes, activity logs, and next-step approvals.', metrics: ['12 client accounts', '100% activity tracking', 'Mobile ready'] },
+    { id: 'prod-4', name: 'Renewal Shield', category: 'Retention', price: 76, status: 'New', description: 'Targets renewal risk with proactive alerts, success plans, and stakeholder mapping.', metrics: ['5 at-risk accounts', '1-click recovery plan', 'Weekly summary email'] }
+  ];
 
   // ---- Boot ----
   window.onload = () => {
     updateNav();
     loadCategories();
     loadProducts();
+    renderCrmDeals();
+    renderCrmProducts();
+    selectDeal('deal-1');
+    selectProduct('prod-1');
   };
 
   // ---- Nav ----
@@ -187,6 +235,54 @@
     if (name === "orders") loadOrders();
     if (name === "catalog") renderProducts();
     window.scrollTo(0, 0);
+  }
+
+  function renderCrmDeals() {
+    const list = document.getElementById('deal-list');
+    list.innerHTML = crmDeals.map(d => `
+      <button class="deal-card" type="button" onclick="selectDeal('${d.id}')" data-id="${d.id}">
+        <div>
+          <strong>${d.name}</strong>
+          <span>${d.stage}</span>
+        </div>
+        <small>${d.owner}</small>
+      </button>
+    `).join('');
+  }
+
+  function selectDeal(id) {
+    const deal = crmDeals.find(d => d.id === id);
+    if (!deal) return;
+    document.getElementById('deal-title').textContent = `${deal.name} · ${deal.score}`;
+    document.getElementById('deal-summary').textContent = deal.summary;
+    document.getElementById('deal-points').innerHTML = deal.points.map(p => `<li>${p}</li>`).join('');
+    document.querySelectorAll('.deal-card').forEach(card => card.classList.toggle('active', card.dataset.id === id));
+  }
+
+  function renderCrmProducts() {
+    const grid = document.getElementById('crm-product-grid');
+    grid.innerHTML = crmProducts.map(p => `
+      <button class="product-card crm-product-card" type="button" onclick="selectProduct('${p.id}')" data-pid="${p.id}">
+        <div class="product-img" style="background:linear-gradient(145deg,#172554,#0f172a);"></div>
+        <div class="product-info">
+          <p class="product-cat">${p.category}</p>
+          <h4>${p.name}</h4>
+          <div class="product-footer">
+            <span class="product-price">$${p.price.toFixed(2)}</span>
+            <span class="product-min">${p.status}</span>
+          </div>
+        </div>
+      </button>
+    `).join('');
+  }
+
+  function selectProduct(id) {
+    const product = crmProducts.find(p => p.id === id);
+    if (!product) return;
+    document.getElementById('product-title').textContent = product.name;
+    document.getElementById('product-description').textContent = product.description;
+    document.getElementById('product-metrics').innerHTML = product.metrics.map(m => `<span class="metric-pill">${m}</span>`).join('');
+    document.querySelectorAll('.crm-product-card').forEach(card => card.classList.toggle('active', card.dataset.pid === id));
   }
 
   // ---- Products ----
