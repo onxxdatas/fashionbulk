@@ -12,17 +12,21 @@ sudo mkdir -p "$APP_DIR" "$FRONTEND_DIR" /etc/nginx/sites-available /etc/nginx/s
 
 cd "$APP_DIR"
 
-echo "[2/6] Installing backend dependencies"
+echo "[2/6] Installing system packages needed for Python venv"
+sudo apt-get update
+sudo apt-get install -y python3-venv python3-pip nginx
+
+echo "[3/6] Installing backend dependencies"
 python3 -m venv venv
 ./venv/bin/pip install --upgrade pip
 ./venv/bin/pip install -r backend/requirements.txt
 
-echo "[3/6] Syncing frontend to Nginx root"
+echo "[4/6] Syncing frontend to Nginx root"
 sudo rm -rf "$FRONTEND_DIR"/*
 sudo mkdir -p "$FRONTEND_DIR"
 sudo cp -r "$APP_DIR/frontend/." "$FRONTEND_DIR/"
 
-echo "[5/6] Creating systemd service"
+echo "[6/6] Creating systemd service"
 sudo tee "$SERVICE_FILE" > /dev/null <<'EOF'
 [Unit]
 Description=FashionBulk FastAPI
@@ -43,7 +47,7 @@ sudo systemctl daemon-reload
 sudo systemctl enable fashionbulk || true
 sudo systemctl restart fashionbulk
 
-echo "[6/6] Configuring Nginx"
+echo "[7/7] Configuring Nginx"
 sudo tee "$NGINX_SITE" > /dev/null <<'EOF'
 server {
     listen 80;
