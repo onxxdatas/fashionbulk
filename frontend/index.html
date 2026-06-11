@@ -1,513 +1,2029 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PulseCRM — Sales Command Center</title>
-  <link rel="stylesheet" href="index.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>PulseCRM — Sales Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ===== TOKENS ===== */
+:root{
+  --bg:#07111f;
+  --surface:#0d1b2e;
+  --surface2:#111f35;
+  --surface3:#162540;
+  --border:rgba(148,163,184,0.14);
+  --border-bright:rgba(103,232,249,0.35);
+  --accent:#22d3ee;
+  --accent2:#67e8f9;
+  --accent3:#0e7490;
+  --success:#34d399;
+  --warning:#fbbf24;
+  --danger:#f87171;
+  --purple:#a78bfa;
+  --white:#f0f6ff;
+  --muted:#8facc8;
+  --font-d:'Syne',sans-serif;
+  --font-b:'Inter',sans-serif;
+  --r:10px;
+  --r-lg:18px;
+  --sh:0 8px 32px rgba(0,0,0,0.4);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-b);
+  background:var(--bg);
+  color:var(--white);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+a{text-decoration:none;color:inherit}
+button{font-family:var(--font-b);cursor:pointer}
+input,select{font-family:var(--font-b)}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:99px}
+
+/* ===== APP SHELL ===== */
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* ===== SIDEBAR ===== */
+.sidebar{
+  width:220px;
+  min-width:220px;
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  padding:0 0 24px;
+  z-index:50;
+  transition:width .25s ease;
+}
+.sidebar.collapsed{width:64px;min-width:64px}
+.sidebar-logo{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:20px 18px 16px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:8px;
+}
+.logo-icon{
+  width:32px;height:32px;
+  background:linear-gradient(135deg,var(--accent),#0891b2);
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  font-size:.8rem;font-weight:800;color:#07111f;
+}
+.logo-text{
+  font-family:var(--font-d);font-size:1.15rem;font-weight:800;
+  white-space:nowrap;overflow:hidden;
+  transition:opacity .2s;
+}
+.logo-text span{color:var(--accent)}
+.sidebar.collapsed .logo-text{opacity:0;width:0;overflow:hidden}
+
+.sidebar-nav{flex:1;display:flex;flex-direction:column;gap:2px;padding:0 10px}
+.nav-item{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 10px;border-radius:8px;
+  color:var(--muted);font-size:.875rem;font-weight:500;
+  transition:all .15s;cursor:pointer;border:none;background:none;
+  white-space:nowrap;
+}
+.nav-item:hover{background:var(--surface2);color:var(--white)}
+.nav-item.active{background:linear-gradient(135deg,rgba(34,211,238,.15),rgba(34,211,238,.05));color:var(--accent);border:1px solid rgba(34,211,238,.2)}
+.nav-icon{font-size:1.05rem;flex-shrink:0;width:20px;text-align:center}
+.nav-label{transition:opacity .2s,width .2s;overflow:hidden}
+.sidebar.collapsed .nav-label{opacity:0;width:0}
+.nav-badge{
+  margin-left:auto;
+  background:var(--danger);color:#fff;
+  border-radius:99px;padding:1px 7px;font-size:.68rem;font-weight:700;
+  transition:opacity .2s;
+}
+.sidebar.collapsed .nav-badge{opacity:0}
+
+.sidebar-bottom{padding:0 10px;display:flex;flex-direction:column;gap:4px}
+.collapse-btn{
+  display:flex;align-items:center;gap:12px;padding:10px 10px;
+  border-radius:8px;color:var(--muted);font-size:.875rem;
+  background:none;border:none;width:100%;transition:all .15s;
+}
+.collapse-btn:hover{color:var(--white);background:var(--surface2)}
+
+/* ===== MAIN ===== */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* ===== TOPBAR ===== */
+.topbar{
+  height:60px;
+  background:rgba(13,27,46,.95);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;
+  padding:0 28px;gap:16px;
+  flex-shrink:0;
+}
+.topbar-title{
+  font-family:var(--font-d);font-size:1.1rem;font-weight:700;
+  flex:1;
+}
+.topbar-search{
+  position:relative;
+  display:flex;align-items:center;
+}
+.topbar-search input{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--white);
+  padding:8px 14px 8px 36px;
+  font-size:.85rem;width:260px;
+  outline:none;transition:border .2s;
+}
+.topbar-search input:focus{border-color:var(--accent2)}
+.topbar-search input::placeholder{color:var(--muted)}
+.search-icon{position:absolute;left:10px;color:var(--muted);font-size:.9rem;pointer-events:none}
+
+.date-range{
+  display:flex;align-items:center;gap:6px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;padding:7px 12px;cursor:pointer;
+  font-size:.82rem;color:var(--muted);
+  transition:border .2s;user-select:none;
+}
+.date-range:hover{border-color:var(--accent2);color:var(--white)}
+.date-range.active{border-color:var(--accent);color:var(--accent2)}
+
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.icon-btn{
+  width:36px;height:36px;border-radius:8px;
+  background:var(--surface2);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem;cursor:pointer;transition:all .15s;color:var(--muted);
+}
+.icon-btn:hover{border-color:var(--accent2);color:var(--accent2)}
+.notif-dot{position:relative}
+.notif-dot::after{
+  content:'';position:absolute;top:6px;right:6px;
+  width:7px;height:7px;border-radius:50%;
+  background:var(--danger);border:1.5px solid var(--surface);
+}
+.avatar{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),#0891b2);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:.85rem;color:#07111f;
+  cursor:pointer;flex-shrink:0;
+}
+
+/* ===== CONTENT AREA ===== */
+.content{flex:1;overflow-y:auto;padding:28px}
+.page-view{display:none}
+.page-view.active{display:block}
+
+/* ===== SECTION HEADERS ===== */
+.section-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;flex-wrap:wrap;gap:12px;
+}
+.section-title{
+  font-family:var(--font-d);font-size:1.4rem;font-weight:800;
+  letter-spacing:-.5px;
+}
+.section-sub{font-size:.82rem;color:var(--muted);margin-top:2px}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:9px 18px;border-radius:7px;
+  font-size:.84rem;font-weight:600;border:none;
+  transition:all .15s;cursor:pointer;
+}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#67e8f9);color:#07111f}
+.btn-primary:hover{filter:brightness(1.08)}
+.btn-outline{background:var(--surface2);color:var(--white);border:1px solid var(--border)}
+.btn-outline:hover{border-color:var(--accent2);color:var(--accent2)}
+.btn-ghost{background:transparent;color:var(--muted);border:none;padding:6px 10px;font-size:.8rem}
+.btn-ghost:hover{color:var(--white)}
+.btn-sm{padding:6px 12px;font-size:.78rem}
+.btn-danger{background:rgba(248,113,113,.12);color:var(--danger);border:1px solid rgba(248,113,113,.3)}
+
+/* ===== GRID LAYOUTS ===== */
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.grid-7-5{display:grid;grid-template-columns:7fr 5fr;gap:16px;margin-bottom:24px}
+.grid-5-7{display:grid;grid-template-columns:5fr 7fr;gap:16px;margin-bottom:24px}
+
+/* ===== CARDS ===== */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  padding:20px;
+  box-shadow:var(--sh);
+}
+.card-header{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  margin-bottom:16px;
+}
+.card-label{
+  font-size:.7rem;font-weight:600;letter-spacing:1.8px;
+  text-transform:uppercase;color:var(--accent2);margin-bottom:6px;
+}
+
+/* ===== KPI CARDS ===== */
+.kpi-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  padding:20px 22px;
+  position:relative;overflow:hidden;
+  transition:transform .15s,border-color .15s;
+}
+.kpi-card:hover{transform:translateY(-2px);border-color:var(--border-bright)}
+.kpi-card::before{
+  content:'';position:absolute;top:0;right:0;
+  width:80px;height:80px;border-radius:0 var(--r-lg) 0 100%;
+  opacity:.07;
+}
+.kpi-card.c1::before{background:var(--accent)}
+.kpi-card.c2::before{background:var(--success)}
+.kpi-card.c3::before{background:var(--warning)}
+.kpi-card.c4::before{background:var(--purple)}
+.kpi-icon{
+  width:40px;height:40px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;margin-bottom:14px;
+}
+.kpi-card.c1 .kpi-icon{background:rgba(34,211,238,.15);color:var(--accent)}
+.kpi-card.c2 .kpi-icon{background:rgba(52,211,153,.15);color:var(--success)}
+.kpi-card.c3 .kpi-icon{background:rgba(251,191,36,.15);color:var(--warning)}
+.kpi-card.c4 .kpi-icon{background:rgba(167,139,250,.15);color:var(--purple)}
+.kpi-value{
+  font-family:var(--font-d);font-size:2.1rem;font-weight:800;
+  letter-spacing:-1px;line-height:1;margin-bottom:6px;
+}
+.kpi-label{font-size:.82rem;color:var(--muted);margin-bottom:12px}
+.kpi-delta{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:.76rem;font-weight:600;
+  padding:3px 8px;border-radius:99px;
+}
+.kpi-delta.up{background:rgba(52,211,153,.12);color:var(--success)}
+.kpi-delta.down{background:rgba(248,113,113,.12);color:var(--danger)}
+.sparkline-wrap{margin-top:14px;height:36px}
+
+/* ===== CHARTS ===== */
+.chart-container{width:100%;overflow:hidden}
+svg text{font-family:var(--font-b)}
+
+/* ===== TABLE ===== */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{
+  font-size:.72rem;font-weight:600;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--muted);
+  padding:10px 14px;text-align:left;
+  border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+.data-table td{
+  padding:12px 14px;font-size:.875rem;
+  border-bottom:1px solid rgba(148,163,184,.07);
+  vertical-align:middle;
+}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tbody tr{transition:background .1s}
+.data-table tbody tr:hover{background:var(--surface2)}
+.data-table tbody tr.selected{background:rgba(34,211,238,.06);border-left:2px solid var(--accent)}
+
+/* ===== BADGES / CHIPS ===== */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 10px;border-radius:99px;
+  font-size:.73rem;font-weight:600;
+}
+.badge-won{background:rgba(52,211,153,.15);color:var(--success)}
+.badge-lost{background:rgba(248,113,113,.12);color:var(--danger)}
+.badge-proposal{background:rgba(251,191,36,.12);color:var(--warning)}
+.badge-discovery{background:rgba(167,139,250,.12);color:var(--purple)}
+.badge-qualified{background:rgba(34,211,238,.12);color:var(--accent2)}
+.badge-negotiation{background:rgba(251,146,60,.12);color:#fb923c}
+
+/* ===== PROGRESS ===== */
+.progress-bar{height:6px;background:var(--surface3);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;border-radius:99px;transition:width .6s ease}
+
+/* ===== PIPELINE KANBAN ===== */
+.kanban-board{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px}
+.kanban-col{
+  min-width:220px;max-width:220px;
+  background:var(--surface2);
+  border-radius:var(--r-lg);
+  border:1px solid var(--border);
+  padding:14px;
+  flex-shrink:0;
+}
+.kanban-col-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:12px;
+}
+.kanban-col-title{font-size:.8rem;font-weight:700;letter-spacing:.5px}
+.kanban-count{
+  background:var(--surface3);
+  padding:1px 8px;border-radius:99px;
+  font-size:.72rem;color:var(--muted);
+}
+.kanban-cards{display:flex;flex-direction:column;gap:8px;min-height:40px}
+.kanban-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:12px;
+  cursor:pointer;
+  transition:all .15s;
+}
+.kanban-card:hover{border-color:var(--accent2);transform:translateY(-1px)}
+.kanban-card.dragging{opacity:.5;border:2px dashed var(--accent)}
+.kanban-col.drag-over .kanban-cards{background:rgba(34,211,238,.06);border-radius:8px}
+.kc-title{font-size:.85rem;font-weight:600;margin-bottom:6px}
+.kc-company{font-size:.75rem;color:var(--muted);margin-bottom:8px}
+.kc-footer{display:flex;align-items:center;justify-content:space-between}
+.kc-value{font-size:.8rem;font-weight:700;color:var(--accent2)}
+.kc-avatar{
+  width:22px;height:22px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),#0891b2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.6rem;font-weight:700;color:#07111f;
+}
+.kc-prob{
+  font-size:.68rem;color:var(--muted);margin-top:8px;
+}
+.kc-bar{height:3px;background:var(--surface3);border-radius:99px;overflow:hidden;margin-top:4px}
+.kc-bar-fill{height:100%;border-radius:99px;background:var(--accent)}
+
+/* ===== ACTIVITY FEED ===== */
+.activity-item{
+  display:flex;gap:12px;padding:12px 0;
+  border-bottom:1px solid rgba(148,163,184,.07);
+}
+.activity-item:last-child{border-bottom:none}
+.activity-dot{
+  width:32px;height:32px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.8rem;flex-shrink:0;margin-top:2px;
+}
+.ad-call{background:rgba(34,211,238,.12);color:var(--accent)}
+.ad-deal{background:rgba(52,211,153,.12);color:var(--success)}
+.ad-email{background:rgba(167,139,250,.12);color:var(--purple)}
+.ad-note{background:rgba(251,191,36,.12);color:var(--warning)}
+.ad-lost{background:rgba(248,113,113,.12);color:var(--danger)}
+.activity-body{flex:1}
+.activity-text{font-size:.85rem;line-height:1.4}
+.activity-text strong{color:var(--white)}
+.activity-time{font-size:.75rem;color:var(--muted);margin-top:3px}
+
+/* ===== LEADERBOARD ===== */
+.leaderboard-row{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 0;border-bottom:1px solid rgba(148,163,184,.07);
+}
+.leaderboard-row:last-child{border-bottom:none}
+.lb-rank{
+  width:24px;font-family:var(--font-d);font-size:.9rem;
+  font-weight:800;color:var(--muted);text-align:center;flex-shrink:0;
+}
+.lb-rank.gold{color:#fbbf24}
+.lb-rank.silver{color:#94a3b8}
+.lb-rank.bronze{color:#cd7f32}
+.lb-avatar{
+  width:34px;height:34px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.8rem;font-weight:700;color:#07111f;flex-shrink:0;
+}
+.lb-info{flex:1;min-width:0}
+.lb-name{font-size:.875rem;font-weight:600}
+.lb-role{font-size:.75rem;color:var(--muted)}
+.lb-stats{text-align:right;flex-shrink:0}
+.lb-revenue{font-family:var(--font-d);font-size:.95rem;font-weight:800}
+.lb-deals{font-size:.72rem;color:var(--muted)}
+
+/* ===== TABS ===== */
+.tabs{display:flex;gap:4px;background:var(--surface2);border-radius:8px;padding:3px;margin-bottom:20px}
+.tab-btn{
+  flex:1;padding:7px 12px;border-radius:6px;border:none;
+  font-size:.8rem;font-weight:600;color:var(--muted);background:none;
+  cursor:pointer;transition:all .15s;
+}
+.tab-btn.active{background:var(--surface);color:var(--white);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+
+/* ===== DONUT ===== */
+.donut-legend{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.donut-item{display:flex;align-items:center;gap:10px;font-size:.83rem}
+.donut-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.donut-label{flex:1;color:var(--muted)}
+.donut-pct{font-weight:600;color:var(--white)}
+.donut-val{color:var(--muted);font-size:.75rem;margin-left:4px}
+
+/* ===== FORECAST ===== */
+.forecast-row{
+  display:flex;align-items:center;gap:10px;padding:9px 0;
+  border-bottom:1px solid rgba(148,163,184,.07);
+}
+.forecast-row:last-child{border-bottom:none}
+.fc-label{font-size:.83rem;flex:1}
+.fc-bar-wrap{width:120px}
+.fc-value{font-size:.83rem;font-weight:700;text-align:right;min-width:70px}
+
+/* ===== CONTACTS TABLE ===== */
+.contact-avatar{
+  width:30px;height:30px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.72rem;font-weight:700;color:#07111f;flex-shrink:0;
+}
+
+/* ===== FILTERS ===== */
+.filter-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.filter-select{
+  background:var(--surface2);border:1px solid var(--border);
+  color:var(--white);padding:8px 12px;border-radius:7px;
+  font-size:.82rem;outline:none;cursor:pointer;
+}
+.filter-select:focus{border-color:var(--accent2)}
+.search-box{
+  background:var(--surface2);border:1px solid var(--border);
+  color:var(--white);padding:8px 12px;border-radius:7px;
+  font-size:.82rem;outline:none;flex:1;min-width:180px;
+}
+.search-box::placeholder{color:var(--muted)}
+.search-box:focus{border-color:var(--accent2)}
+
+/* ===== NOTIFICATIONS PANEL ===== */
+.notif-panel{
+  position:fixed;top:60px;right:0;
+  width:360px;height:calc(100vh - 60px);
+  background:var(--surface);
+  border-left:1px solid var(--border);
+  z-index:200;
+  display:none;flex-direction:column;
+  box-shadow:-8px 0 40px rgba(0,0,0,.4);
+}
+.notif-panel.open{display:flex}
+.notif-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 20px;border-bottom:1px solid var(--border);
+}
+.notif-list{flex:1;overflow-y:auto;padding:12px}
+.notif-item{
+  padding:12px;border-radius:10px;margin-bottom:8px;
+  background:var(--surface2);border:1px solid var(--border);
+  cursor:pointer;transition:border .15s;
+}
+.notif-item:hover{border-color:var(--accent2)}
+.notif-item.unread{border-left:3px solid var(--accent)}
+.notif-item-title{font-size:.84rem;font-weight:600;margin-bottom:4px}
+.notif-item-body{font-size:.78rem;color:var(--muted);line-height:1.4}
+.notif-item-time{font-size:.72rem;color:var(--muted);margin-top:4px}
+
+/* ===== MODAL ===== */
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.6);
+  z-index:500;align-items:center;justify-content:center;
+  padding:24px;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  padding:28px;
+  width:100%;max-width:480px;
+  max-height:85vh;overflow-y:auto;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+.modal h3{font-family:var(--font-d);font-size:1.3rem;font-weight:800;margin-bottom:18px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:.78rem;font-weight:600;margin-bottom:6px;color:var(--muted)}
+.form-control{
+  width:100%;padding:10px 13px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:7px;color:var(--white);font-size:.875rem;
+  outline:none;transition:border .15s;
+}
+.form-control:focus{border-color:var(--accent)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+
+/* ===== GOALS ===== */
+.goal-item{margin-bottom:18px}
+.goal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.goal-title{font-size:.85rem;font-weight:600}
+.goal-numbers{font-size:.8rem;color:var(--muted)}
+.goal-bar{height:8px;background:var(--surface3);border-radius:99px;overflow:hidden}
+.goal-fill{height:100%;border-radius:99px;transition:width .8s ease}
+
+/* ===== TOAST ===== */
+.toast{
+  position:fixed;bottom:28px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:rgba(13,27,46,.98);
+  border:1px solid var(--border-bright);
+  color:var(--white);
+  padding:12px 22px;border-radius:50px;
+  font-size:.84rem;font-weight:500;
+  z-index:9999;opacity:0;
+  transition:opacity .25s,transform .25s;
+  pointer-events:none;white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ===== TICKER ===== */
+.live-ticker{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 14px;
+  background:rgba(34,211,238,.08);
+  border:1px solid rgba(34,211,238,.18);
+  border-radius:7px;font-size:.75rem;
+  color:var(--accent2);
+}
+.ticker-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--success);flex-shrink:0;
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes countUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.count-up{animation:countUp .4s ease both}
+
+/* ===== GAUGE ===== */
+.gauge-wrap{display:flex;flex-direction:column;align-items:center;gap:8px}
+
+/* ===== HEATMAP ===== */
+.heatmap-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:10px}
+.hm-cell{
+  aspect-ratio:1;border-radius:3px;background:var(--surface3);
+  transition:transform .1s;cursor:default;
+  position:relative;
+}
+.hm-cell:hover::after{
+  content:attr(data-tip);
+  position:absolute;bottom:calc(100% + 4px);left:50%;
+  transform:translateX(-50%);
+  background:var(--surface);border:1px solid var(--border);
+  padding:4px 8px;border-radius:6px;
+  font-size:.68rem;white-space:nowrap;color:var(--white);
+  pointer-events:none;z-index:10;
+}
+.hm-cell:hover{transform:scale(1.15)}
+
+/* ===== SCROLLABLE TABLE WRAPPER ===== */
+.table-wrap{overflow-x:auto}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:1100px){
+  .grid-4{grid-template-columns:repeat(2,1fr)}
+  .grid-7-5,.grid-5-7,.grid-2{grid-template-columns:1fr}
+  .sidebar{width:64px;min-width:64px}
+  .logo-text,.nav-label,.nav-badge{opacity:0;width:0;overflow:hidden}
+}
+@media(max-width:700px){
+  .grid-4,.grid-3{grid-template-columns:1fr}
+  .topbar-search{display:none}
+  .date-range span:not(.icon){display:none}
+}
+</style>
 </head>
 <body>
 
-<!-- ===== NAV ===== -->
-<header class="nav">
-  <a class="nav-logo" href="#">Pulse<span>CRM</span></a>
-  <nav class="nav-links">
-    <a href="#" onclick="showPage('catalog')">Dashboard</a>
-    <a href="#" onclick="showPage('orders')">Deals</a>
-    <a href="#" onclick="showPage('catalog')">Leads</a>
+<div class="app">
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">P</div>
+    <span class="logo-text">Pulse<span>CRM</span></span>
+  </div>
+  <nav class="sidebar-nav">
+    <button class="nav-item active" onclick="navigate('dashboard',this)">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Dashboard</span>
+    </button>
+    <button class="nav-item" onclick="navigate('pipeline',this)">
+      <span class="nav-icon">🔀</span>
+      <span class="nav-label">Pipeline</span>
+      <span class="nav-badge">4</span>
+    </button>
+    <button class="nav-item" onclick="navigate('contacts',this)">
+      <span class="nav-icon">👥</span>
+      <span class="nav-label">Contacts</span>
+    </button>
+    <button class="nav-item" onclick="navigate('reports',this)">
+      <span class="nav-icon">📈</span>
+      <span class="nav-label">Reports</span>
+    </button>
+    <button class="nav-item" onclick="navigate('goals',this)">
+      <span class="nav-icon">🎯</span>
+      <span class="nav-label">Goals</span>
+    </button>
+    <button class="nav-item" onclick="navigate('activity',this)">
+      <span class="nav-icon">⚡</span>
+      <span class="nav-label">Activity</span>
+    </button>
   </nav>
-  <div class="nav-auth" id="nav-auth">
-    <button class="btn btn-outline" onclick="showModal('login')">Log in</button>
-    <button class="btn btn-primary" onclick="showModal('register')">Register</button>
-  </div>
-</header>
-
-<!-- ===== HERO ===== -->
-<section class="hero" id="page-hero">
-  <div class="hero-text">
-    <p class="eyebrow">CRM · Revenue Operations</p>
-    <h1>Run your sales pipeline from one clean command center.</h1>
-    <p class="hero-sub">Track leads, monitor deal health, assign follow-ups, and keep your team aligned in real time.</p>
-    <button class="btn btn-primary btn-lg" onclick="showPage('catalog')">Open dashboard →</button>
-  </div>
-  <div class="hero-visual">
-    <div class="hero-card">18<span>active opportunities</span></div>
-    <div class="hero-card">92%<span>follow-up completion</span></div>
-    <div class="hero-card">$240k<span>pipeline value</span></div>
-  </div>
-</section>
-
-<section class="crm-shell">
-  <article class="crm-card crm-card-accent">
-    <p class="mini-label">Today</p>
-    <h3>4 deals need attention</h3>
-    <p>Two renewals, one proposal review, and a high-value lead waiting for a call-back.</p>
-  </article>
-  <article class="crm-card">
-    <p class="mini-label">Win rate</p>
-    <h3>63% conversion</h3>
-    <p>Improved from last month through faster handoffs and weekly pipeline reviews.</p>
-  </article>
-  <article class="crm-card">
-    <p class="mini-label">Team activity</p>
-    <h3>12 follow-ups scheduled</h3>
-    <p>Automate your queue and keep every account moving without chasing manual notes.</p>
-  </article>
-</section>
-
-<!-- ===== CRM DASHBOARD PAGE ===== -->
-<section class="page" id="page-catalog" style="display:none">
-  <div class="page-header">
-    <h2>Sales pipeline</h2>
-    <div class="filters">
-      <button class="btn btn-outline" type="button" onclick="selectDeal('deal-1')">Focus top deal</button>
-      <button class="btn btn-primary" type="button" onclick="selectDeal('deal-4')">Open renewal</button>
-    </div>
-  </div>
-
-  <div class="dashboard-grid">
-    <article class="dashboard-panel">
-      <div class="panel-label">Open opportunities</div>
-      <div id="deal-list" class="deal-list"></div>
-    </article>
-
-    <article class="dashboard-panel dashboard-panel-accent" id="deal-detail">
-      <div class="panel-label">Selected deal</div>
-      <h3 id="deal-title">Loading deal…</h3>
-      <p id="deal-summary" class="muted-text"></p>
-      <ul id="deal-points" class="detail-points"></ul>
-      <div class="detail-actions">
-        <button class="btn btn-primary" type="button">Schedule follow-up</button>
-        <button class="btn btn-outline" type="button">Send proposal</button>
-      </div>
-    </article>
-  </div>
-</section>
-
-<!-- ===== PRODUCT / CRM CARD PAGE ===== -->
-<section class="page" id="page-orders" style="display:none">
-  <div class="page-header">
-    <h2>Product & account view</h2>
-    <div class="filters">
-      <button class="btn btn-outline" type="button" onclick="selectProduct('prod-1')">Highlight flagship</button>
-      <button class="btn btn-primary" type="button" onclick="selectProduct('prod-4')">Show renewal pack</button>
-    </div>
-  </div>
-
-  <div class="dashboard-grid dashboard-grid-two">
-    <article class="dashboard-panel">
-      <div class="panel-label">Clickable product cards</div>
-      <div class="product-grid" id="crm-product-grid"></div>
-    </article>
-
-    <article class="dashboard-panel" id="product-detail">
-      <div class="panel-label">Selected product</div>
-      <h3 id="product-title">Loading product…</h3>
-      <p id="product-description" class="muted-text"></p>
-      <div class="mini-metrics" id="product-metrics"></div>
-      <div class="detail-actions">
-        <button class="btn btn-primary" type="button">Add to account plan</button>
-        <button class="btn btn-outline" type="button">Share to team</button>
-      </div>
-    </article>
-  </div>
-</section>
-
-<!-- ===== CART SIDEBAR ===== -->
-<div class="cart-fab" id="cart-fab" onclick="toggleCart()">
-  🛒 <span id="cart-count">0</span>
-</div>
-
-<aside class="cart-sidebar" id="cart-sidebar">
-  <div class="cart-header">
-    <h3>Your Cart</h3>
-    <button class="close-btn" onclick="toggleCart()">✕</button>
-  </div>
-  <div id="cart-items"></div>
-  <div class="cart-footer" id="cart-footer" style="display:none">
-    <div class="cart-total">Total: $<span id="cart-total">0.00</span></div>
-    <input class="input" type="text" id="shipping-address" placeholder="Shipping address…" />
-    <button class="btn btn-primary" style="width:100%" onclick="placeOrder()">Place Order</button>
+  <div class="sidebar-bottom">
+    <button class="collapse-btn" onclick="toggleSidebar()">
+      <span class="nav-icon" id="collapse-icon">◀</span>
+      <span class="nav-label">Collapse</span>
+    </button>
   </div>
 </aside>
 
-<!-- ===== MODALS ===== -->
-<div class="modal-overlay" id="modal-overlay" onclick="closeModal()">
+<!-- ===== MAIN ===== -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <span class="topbar-title" id="topbar-title">Dashboard</span>
+
+    <div class="topbar-search">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="Search deals, contacts…" oninput="globalSearch(this.value)"/>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <div class="date-range active" id="dr-q1" onclick="setDateRange('Q2 2025',this)">
+        <span class="icon">📅</span> <span>Q2 2025</span>
+      </div>
+      <div class="date-range" id="dr-q2" onclick="setDateRange('Q1 2025',this)">
+        <span class="icon">📅</span> <span>Q1 2025</span>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <div class="live-ticker"><div class="ticker-dot"></div>Live</div>
+      <div class="icon-btn notif-dot" onclick="toggleNotif()" title="Notifications">🔔</div>
+      <div class="icon-btn" onclick="showModal('add-deal')" title="New deal">＋</div>
+      <div class="avatar">AJ</div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ========== DASHBOARD ========== -->
+    <div class="page-view active" id="page-dashboard">
+
+      <div class="section-header">
+        <div>
+          <div class="section-title">Sales Overview</div>
+          <div class="section-sub">Q2 2025 · Updated just now</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline btn-sm" onclick="refreshKPIs()">↻ Refresh</button>
+          <button class="btn btn-primary btn-sm" onclick="showModal('add-deal')">+ Add Deal</button>
+        </div>
+      </div>
+
+      <!-- KPI CARDS -->
+      <div class="grid-4">
+        <div class="kpi-card c1" id="kpi-revenue">
+          <div class="kpi-icon">💰</div>
+          <div class="kpi-value" id="kv-revenue">$1.84M</div>
+          <div class="kpi-label">Pipeline Revenue</div>
+          <div class="kpi-delta up" id="kd-revenue">↑ 18.3% vs last quarter</div>
+          <div class="sparkline-wrap"><svg id="spark-revenue" width="100%" height="36" viewBox="0 0 160 36"></svg></div>
+        </div>
+        <div class="kpi-card c2" id="kpi-deals">
+          <div class="kpi-icon">🤝</div>
+          <div class="kpi-value" id="kv-deals">47</div>
+          <div class="kpi-label">Active Deals</div>
+          <div class="kpi-delta up" id="kd-deals">↑ 7 vs last month</div>
+          <div class="sparkline-wrap"><svg id="spark-deals" width="100%" height="36" viewBox="0 0 160 36"></svg></div>
+        </div>
+        <div class="kpi-card c3" id="kpi-win">
+          <div class="kpi-icon">🏆</div>
+          <div class="kpi-value" id="kv-win">63%</div>
+          <div class="kpi-label">Win Rate</div>
+          <div class="kpi-delta down" id="kd-win">↓ 2.1% this month</div>
+          <div class="sparkline-wrap"><svg id="spark-win" width="100%" height="36" viewBox="0 0 160 36"></svg></div>
+        </div>
+        <div class="kpi-card c4" id="kpi-cycle">
+          <div class="kpi-icon">⏱</div>
+          <div class="kpi-value" id="kv-cycle">24d</div>
+          <div class="kpi-label">Avg. Sales Cycle</div>
+          <div class="kpi-delta up" id="kd-cycle">↑ 3d faster</div>
+          <div class="sparkline-wrap"><svg id="spark-cycle" width="100%" height="36" viewBox="0 0 160 36"></svg></div>
+        </div>
+      </div>
+
+      <!-- REVENUE CHART + DONUT -->
+      <div class="grid-7-5">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-label">Monthly Revenue</div>
+              <div style="font-family:var(--font-d);font-size:1rem;font-weight:700">Revenue vs Target</div>
+            </div>
+            <div class="tabs" style="margin:0;width:auto">
+              <button class="tab-btn active" onclick="switchRevTab('bar',this)">Bar</button>
+              <button class="tab-btn" onclick="switchRevTab('line',this)">Line</button>
+            </div>
+          </div>
+          <div class="chart-container" id="revenue-chart"></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-label">Deal Stages</div>
+              <div style="font-family:var(--font-d);font-size:1rem;font-weight:700">Pipeline Distribution</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:20px">
+            <div class="gauge-wrap" style="flex:0 0 auto">
+              <svg id="donut-chart" width="140" height="140" viewBox="0 0 140 140"></svg>
+            </div>
+            <div class="donut-legend" id="donut-legend"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DEALS TABLE + ACTIVITY -->
+      <div class="grid-7-5">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-label">Open Deals</div>
+              <div style="font-family:var(--font-d);font-size:1rem;font-weight:700">Top Opportunities</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="navigate('pipeline',document.querySelector('[onclick*=pipeline]'))">View all →</button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table" id="dash-deals-table">
+              <thead>
+                <tr>
+                  <th>Deal</th><th>Stage</th><th>Value</th><th>Owner</th><th>Close</th><th>Prob</th>
+                </tr>
+              </thead>
+              <tbody id="dash-deals-body"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-label">Recent Events</div>
+              <div style="font-family:var(--font-d);font-size:1rem;font-weight:700">Activity Feed</div>
+            </div>
+          </div>
+          <div id="activity-feed"></div>
+        </div>
+      </div>
+
+      <!-- LEADERBOARD + HEATMAP -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-label">Sales Team</div>
+              <div style="font-family:var(--font-d);font-size:1rem;font-weight:700">Leaderboard</div>
+            </div>
+            <span style="font-size:.75rem;color:var(--muted)">Q2 2025</span>
+          </div>
+          <div id="leaderboard"></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-label">Call Activity</div>
+              <div style="font-family:var(--font-d);font-size:1rem;font-weight:700">Last 7 Weeks Heatmap</div>
+            </div>
+          </div>
+          <div style="font-size:.7rem;color:var(--muted);display:flex;justify-content:space-between;margin-bottom:4px">
+            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+          </div>
+          <div class="heatmap-grid" id="heatmap"></div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:10px;font-size:.72rem;color:var(--muted)">
+            Less
+            <div style="width:10px;height:10px;border-radius:2px;background:var(--surface3)"></div>
+            <div style="width:10px;height:10px;border-radius:2px;background:rgba(34,211,238,.25)"></div>
+            <div style="width:10px;height:10px;border-radius:2px;background:rgba(34,211,238,.5)"></div>
+            <div style="width:10px;height:10px;border-radius:2px;background:var(--accent)"></div>
+            More
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /dashboard -->
+
+    <!-- ========== PIPELINE ========== -->
+    <div class="page-view" id="page-pipeline">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Pipeline</div>
+          <div class="section-sub">Drag cards between stages to update</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline btn-sm" onclick="togglePipeView()">⊞ List View</button>
+          <button class="btn btn-primary btn-sm" onclick="showModal('add-deal')">+ New Deal</button>
+        </div>
+      </div>
+
+      <div class="filter-row">
+        <input class="search-box" placeholder="Search deals…" oninput="filterPipeline(this.value)" style="max-width:220px"/>
+        <select class="filter-select" onchange="filterOwner(this.value)">
+          <option value="">All owners</option>
+          <option>Sarah K.</option><option>Marcus R.</option><option>Priya S.</option>
+          <option>Tom B.</option><option>Elena V.</option>
+        </select>
+        <select class="filter-select" onchange="filterValue(this.value)">
+          <option value="">All values</option>
+          <option value="50000">$50k+</option>
+          <option value="100000">$100k+</option>
+          <option value="200000">$200k+</option>
+        </select>
+      </div>
+
+      <div class="kanban-board" id="kanban-board"></div>
+
+      <!-- List view (hidden by default) -->
+      <div id="pipe-list-view" style="display:none">
+        <div class="card" style="margin-top:0">
+          <div class="table-wrap">
+            <table class="data-table" id="pipe-list-table">
+              <thead>
+                <tr>
+                  <th onclick="sortPipe('name')" style="cursor:pointer">Deal ⇅</th>
+                  <th onclick="sortPipe('company')" style="cursor:pointer">Company ⇅</th>
+                  <th onclick="sortPipe('stage')" style="cursor:pointer">Stage ⇅</th>
+                  <th onclick="sortPipe('value')" style="cursor:pointer">Value ⇅</th>
+                  <th onclick="sortPipe('owner')" style="cursor:pointer">Owner ⇅</th>
+                  <th onclick="sortPipe('close')" style="cursor:pointer">Close Date ⇅</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="pipe-list-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div><!-- /pipeline -->
+
+    <!-- ========== CONTACTS ========== -->
+    <div class="page-view" id="page-contacts">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Contacts</div>
+          <div class="section-sub">48 total · 12 new this month</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="showModal('add-contact')">+ Add Contact</button>
+      </div>
+
+      <div class="filter-row">
+        <input class="search-box" placeholder="Search name, company, email…" oninput="filterContacts(this.value)"/>
+        <select class="filter-select" onchange="filterContactStatus(this.value)">
+          <option value="">All statuses</option>
+          <option>Customer</option><option>Prospect</option><option>Lead</option><option>Churned</option>
+        </select>
+        <select class="filter-select" onchange="filterContactIndustry(this.value)">
+          <option value="">All industries</option>
+          <option>SaaS</option><option>Finance</option><option>Healthcare</option><option>Retail</option><option>Manufacturing</option>
+        </select>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Contact</th><th>Company</th><th>Industry</th><th>Status</th>
+                <th>Deals</th><th>Revenue</th><th>Last Contact</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="contacts-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /contacts -->
+
+    <!-- ========== REPORTS ========== -->
+    <div class="page-view" id="page-reports">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Reports</div>
+          <div class="section-sub">Performance analytics · Q2 2025</div>
+        </div>
+        <button class="btn btn-outline btn-sm">⬇ Export CSV</button>
+      </div>
+
+      <div class="grid-3" style="margin-bottom:24px">
+        <div class="card">
+          <div class="card-label">Closed Won</div>
+          <div style="font-family:var(--font-d);font-size:2rem;font-weight:800;color:var(--success)">$640k</div>
+          <div class="progress-bar" style="margin-top:10px">
+            <div class="progress-fill" style="width:74%;background:var(--success)"></div>
+          </div>
+          <div style="font-size:.75rem;color:var(--muted);margin-top:6px">74% of $864k target</div>
+        </div>
+        <div class="card">
+          <div class="card-label">New Leads</div>
+          <div style="font-family:var(--font-d);font-size:2rem;font-weight:800;color:var(--warning)">128</div>
+          <div class="progress-bar" style="margin-top:10px">
+            <div class="progress-fill" style="width:85%;background:var(--warning)"></div>
+          </div>
+          <div style="font-size:.75rem;color:var(--muted);margin-top:6px">85% of 150 target</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Avg Deal Size</div>
+          <div style="font-family:var(--font-d);font-size:2rem;font-weight:800;color:var(--purple)">$39k</div>
+          <div class="progress-bar" style="margin-top:10px">
+            <div class="progress-fill" style="width:62%;background:var(--purple)"></div>
+          </div>
+          <div style="font-size:.75rem;color:var(--muted);margin-top:6px">↑ 14% year-over-year</div>
+        </div>
+      </div>
+
+      <!-- Funnel + Win/Loss -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-label">Conversion Funnel</div>
+          <div style="font-family:var(--font-d);font-size:1rem;font-weight:700;margin-bottom:16px">Stage Conversion Rates</div>
+          <div id="funnel-chart"></div>
+        </div>
+        <div class="card">
+          <div class="card-label">Win / Loss Reasons</div>
+          <div style="font-family:var(--font-d);font-size:1rem;font-weight:700;margin-bottom:16px">Top Reasons</div>
+          <div id="winloss-chart"></div>
+        </div>
+      </div>
+
+      <!-- Forecast table -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-label">Revenue Forecast</div>
+            <div style="font-family:var(--font-d);font-size:1rem;font-weight:700">Q3 2025 Projection</div>
+          </div>
+          <div style="font-size:.8rem;color:var(--muted)">Based on weighted pipeline</div>
+        </div>
+        <div id="forecast-table"></div>
+      </div>
+    </div><!-- /reports -->
+
+    <!-- ========== GOALS ========== -->
+    <div class="page-view" id="page-goals">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Team Goals</div>
+          <div class="section-sub">Q2 2025 Objectives</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="showModal('add-goal')">+ Set Goal</button>
+      </div>
+      <div class="grid-2">
+        <div class="card" id="goals-card"></div>
+        <div class="card">
+          <div class="card-label">Individual Targets</div>
+          <div style="font-family:var(--font-d);font-size:1rem;font-weight:700;margin-bottom:16px">Rep Performance</div>
+          <div id="rep-targets"></div>
+        </div>
+      </div>
+    </div><!-- /goals -->
+
+    <!-- ========== ACTIVITY ========== -->
+    <div class="page-view" id="page-activity">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Activity Log</div>
+          <div class="section-sub">All team interactions</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="showModal('log-activity')">+ Log Activity</button>
+      </div>
+      <div class="grid-7-5">
+        <div class="card">
+          <div class="card-label">Timeline</div>
+          <div style="font-family:var(--font-d);font-size:1rem;font-weight:700;margin-bottom:16px">All Activity</div>
+          <div id="full-activity-feed"></div>
+        </div>
+        <div class="card">
+          <div class="card-label">Summary</div>
+          <div style="font-family:var(--font-d);font-size:1rem;font-weight:700;margin-bottom:16px">This Week</div>
+          <div id="activity-summary-chart"></div>
+          <div style="margin-top:20px">
+            <div class="card-label" style="margin-bottom:12px">Upcoming Tasks</div>
+            <div id="upcoming-tasks"></div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /activity -->
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- NOTIFICATIONS PANEL -->
+<div class="notif-panel" id="notif-panel">
+  <div class="notif-header">
+    <span style="font-family:var(--font-d);font-weight:700">Notifications</span>
+    <button class="btn btn-ghost btn-sm" onclick="markAllRead()">Mark all read</button>
+  </div>
+  <div class="notif-list" id="notif-list"></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
   <div class="modal" onclick="event.stopPropagation()">
-
-    <!-- Login -->
-    <div id="modal-login">
-      <h3>Log in</h3>
-      <input class="input" type="email" id="login-email" placeholder="Email" />
-      <input class="input" type="password" id="login-password" placeholder="Password" />
-      <div class="form-error" id="login-error"></div>
-      <button class="btn btn-primary" style="width:100%" onclick="doLogin()">Log in</button>
-      <p class="modal-switch">No account? <a href="#" onclick="showModal('register')">Register</a></p>
-    </div>
-
-    <!-- Register -->
-    <div id="modal-register" style="display:none">
-      <h3>Create account</h3>
-      <input class="input" type="text" id="reg-name" placeholder="Full name" />
-      <input class="input" type="email" id="reg-email" placeholder="Email" />
-      <input class="input" type="password" id="reg-password" placeholder="Password" />
-      <div class="form-error" id="reg-error"></div>
-      <button class="btn btn-primary" style="width:100%" onclick="doRegister()">Create account</button>
-      <p class="modal-switch">Have an account? <a href="#" onclick="showModal('login')">Log in</a></p>
-    </div>
-
-    <!-- Product detail -->
-    <div id="modal-product" style="display:none">
-      <img id="pd-image" src="" alt="" />
-      <h3 id="pd-name"></h3>
-      <p class="pd-category" id="pd-category"></p>
-      <div class="pd-meta">
-        <span>$<span id="pd-price"></span> / unit</span>
-        <span>Min. order: <strong id="pd-min"></strong> units</span>
-        <span>Stock: <strong id="pd-stock"></strong></span>
-      </div>
-      <div class="qty-row">
-        <label>Quantity</label>
-        <input class="input qty-input" type="number" id="pd-qty" value="50" min="1" />
-      </div>
-      <button class="btn btn-primary" style="width:100%" onclick="addToCartFromModal()">Add to cart</button>
-    </div>
-
+    <div id="modal-body"></div>
   </div>
 </div>
 
-<!-- ===== TOAST ===== -->
+<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
-  const API = "https://api.onxxdatas.space"; // change to http://localhost:8000 for local dev
+/* ======================================================
+   DATA
+====================================================== */
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-  let token = localStorage.getItem("fb_token") || null;
-  let userName = localStorage.getItem("fb_name") || null;
-  let cart = JSON.parse(localStorage.getItem("fb_cart") || "[]");
-  let allProducts = [];
-  let currentProduct = null;
-  const crmDeals = [
-    { id: 'deal-1', name: 'Enterprise renewal', stage: 'Proposal sent', owner: 'Sara', score: 'High', summary: 'Quarterly contract renewal with 3 strategic accounts needing approval this week.', points: ['3 accounts in review', 'Pricing approved by finance', 'Decision meeting on Friday'] },
-    { id: 'deal-2', name: 'Mid-market upsell', stage: 'Discovery', owner: 'Leo', score: 'Medium', summary: 'New expansion opportunity for the onboarding team after the last implementation win.', points: ['6 new contacts added', 'Pilot package requested', 'Demo scheduled for tomorrow'] },
-    { id: 'deal-3', name: 'Partner referral', stage: 'Negotiation', owner: 'Maya', score: 'High', summary: 'Referral from a regional partner with strong budget and clear implementation needs.', points: ['Budget confirmed', 'Legal review started', 'Next call with COO'] },
-    { id: 'deal-4', name: 'Renewal risk watch', stage: 'Follow-up', owner: 'Jon', score: 'Urgent', summary: 'At-risk renewal that needs a fast recovery plan to protect recurring revenue.', points: ['Churn risk flagged', 'Executive sponsor engaged', 'Recovery task list ready'] }
-  ];
-  const crmProducts = [
-    { id: 'prod-1', name: 'Pipeline Pulse', category: 'Analytics', price: 89, status: 'Live', description: 'A real-time dashboard for forecasting, stage health, and revenue movement.', metrics: ['92% win rate', '18 open deals', '24h refresh'] },
-    { id: 'prod-2', name: 'Lead Concierge', category: 'Automation', price: 64, status: 'Beta', description: 'Automates reminders, route assignments, and follow-up nudges for busy teams.', metrics: ['8 automations active', '2 hrs saved/week', '1-click handoff'] },
-    { id: 'prod-3', name: 'Client Hub', category: 'Portal', price: 112, status: 'Popular', description: 'A secure portal for client notes, activity logs, and next-step approvals.', metrics: ['12 client accounts', '100% activity tracking', 'Mobile ready'] },
-    { id: 'prod-4', name: 'Renewal Shield', category: 'Retention', price: 76, status: 'New', description: 'Targets renewal risk with proactive alerts, success plans, and stakeholder mapping.', metrics: ['5 at-risk accounts', '1-click recovery plan', 'Weekly summary email'] }
-  ];
+const REVENUE_DATA = {
+  labels:['Jan','Feb','Mar','Apr','May','Jun'],
+  actual:[128,145,162,151,180,195],
+  target:[140,140,160,160,175,200]
+};
 
-  // ---- Boot ----
-  window.onload = () => {
-    updateNav();
-    loadCategories();
-    loadProducts();
-    renderCrmDeals();
-    renderCrmProducts();
-    selectDeal('deal-1');
-    selectProduct('prod-1');
-  };
+const STAGES = ['Prospecting','Qualified','Proposal','Negotiation','Closed Won','Closed Lost'];
+const STAGE_COLORS = ['#22d3ee','#a78bfa','#fbbf24','#fb923c','#34d399','#f87171'];
 
-  // ---- Nav ----
-  function updateNav() {
-    const el = document.getElementById("nav-auth");
-    if (token) {
-      el.innerHTML = `<span class="nav-user">👤 ${userName}</span>
-        <button class="btn btn-outline" onclick="doLogout()">Log out</button>`;
-    } else {
-      el.innerHTML = `<button class="btn btn-outline" onclick="showModal('login')">Log in</button>
-        <button class="btn btn-primary" onclick="showModal('register')">Register</button>`;
-    }
-    updateCartBadge();
+const OWNERS = ['Sarah K.','Marcus R.','Priya S.','Tom B.','Elena V.'];
+const OWNER_INITIALS = ['SK','MR','PS','TB','EV'];
+const OWNER_COLORS = ['#22d3ee','#a78bfa','#34d399','#fbbf24','#f87171'];
+
+let DEALS = [
+  {id:1,name:'Apex Systems Renewal',company:'Apex Systems',stage:'Negotiation',value:240000,owner:'Sarah K.',close:'2025-07-15',prob:85,industry:'SaaS'},
+  {id:2,name:'CloudMatrix Expansion',company:'CloudMatrix',stage:'Proposal',value:185000,owner:'Marcus R.',close:'2025-07-28',prob:65,industry:'Finance'},
+  {id:3,name:'FinVault Annual License',company:'FinVault',stage:'Qualified',value:90000,owner:'Priya S.',close:'2025-08-10',prob:50,industry:'Finance'},
+  {id:4,name:'NovaTech Platform Deal',company:'NovaTech',stage:'Prospecting',value:320000,owner:'Tom B.',close:'2025-09-01',prob:30,industry:'Manufacturing'},
+  {id:5,name:'HealthSync Onboarding',company:'HealthSync',stage:'Closed Won',value:75000,owner:'Elena V.',close:'2025-06-20',prob:100,industry:'Healthcare'},
+  {id:6,name:'RetailOne SaaS Suite',company:'RetailOne',stage:'Proposal',value:52000,owner:'Sarah K.',close:'2025-07-22',prob:60,industry:'Retail'},
+  {id:7,name:'Meridian Corp Upgrade',company:'Meridian Corp',stage:'Negotiation',value:130000,owner:'Marcus R.',close:'2025-07-30',prob:80,industry:'SaaS'},
+  {id:8,name:'BrightPath Analytics',company:'BrightPath',stage:'Qualified',value:68000,owner:'Priya S.',close:'2025-08-15',prob:45,industry:'SaaS'},
+  {id:9,name:'Global Logistics AI',company:'Global Logistics',stage:'Closed Lost',value:210000,owner:'Tom B.',close:'2025-06-01',prob:0,industry:'Manufacturing'},
+  {id:10,name:'MedCore Integration',company:'MedCore',stage:'Proposal',value:95000,owner:'Elena V.',close:'2025-08-05',prob:70,industry:'Healthcare'},
+  {id:11,name:'Quantum Pay License',company:'Quantum Pay',stage:'Prospecting',value:45000,owner:'Sarah K.',close:'2025-09-15',prob:20,industry:'Finance'},
+  {id:12,name:'SwiftOps Bundle',company:'SwiftOps',stage:'Closed Won',value:160000,owner:'Marcus R.',close:'2025-06-25',prob:100,industry:'SaaS'},
+];
+
+let CONTACTS = [
+  {id:1,name:'Jessica Chen',email:'jessica@apexsys.com',company:'Apex Systems',industry:'SaaS',status:'Customer',deals:3,revenue:420000,last:'2025-06-08'},
+  {id:2,name:'Robert Huang',email:'rhuang@cloudmatrix.io',company:'CloudMatrix',industry:'Finance',status:'Prospect',deals:1,revenue:185000,last:'2025-06-05'},
+  {id:3,name:'Amara Osei',email:'amara@finvault.com',company:'FinVault',industry:'Finance',status:'Prospect',deals:1,revenue:90000,last:'2025-05-30'},
+  {id:4,name:'David Park',email:'dpark@novatech.co',company:'NovaTech',industry:'Manufacturing',status:'Lead',deals:1,revenue:320000,last:'2025-06-01'},
+  {id:5,name:'Linda Torres',email:'ltorres@healthsync.net',company:'HealthSync',industry:'Healthcare',status:'Customer',deals:2,revenue:140000,last:'2025-06-09'},
+  {id:6,name:'Sam Winters',email:'swinters@retailone.com',company:'RetailOne',industry:'Retail',status:'Prospect',deals:1,revenue:52000,last:'2025-06-03'},
+  {id:7,name:'Kevin Okafor',email:'kokafor@meridian.com',company:'Meridian Corp',industry:'SaaS',status:'Customer',deals:4,revenue:580000,last:'2025-06-07'},
+  {id:8,name:'Natasha Ivanova',email:'nivanova@brightpath.ai',company:'BrightPath',industry:'SaaS',status:'Prospect',deals:1,revenue:68000,last:'2025-05-28'},
+  {id:9,name:'Carlos Mendez',email:'cmendez@globlog.com',company:'Global Logistics',industry:'Manufacturing',status:'Churned',deals:0,revenue:0,last:'2025-05-15'},
+  {id:10,name:'Fiona Walsh',email:'fwalsh@medcore.io',company:'MedCore',industry:'Healthcare',status:'Prospect',deals:1,revenue:95000,last:'2025-06-06'},
+];
+
+const ACTIVITIES = [
+  {type:'call',text:'<strong>Sarah K.</strong> logged a discovery call with <strong>Apex Systems</strong>',time:'2 min ago'},
+  {type:'deal',text:'<strong>Marcus R.</strong> moved <strong>CloudMatrix Expansion</strong> to Proposal',time:'18 min ago'},
+  {type:'email',text:'<strong>Priya S.</strong> sent a follow-up proposal to <strong>FinVault</strong>',time:'1 hr ago'},
+  {type:'deal',text:'<strong>Elena V.</strong> closed <strong>HealthSync Onboarding</strong> — $75k won! 🎉',time:'3 hr ago'},
+  {type:'note',text:'<strong>Tom B.</strong> added a note on <strong>NovaTech Platform Deal</strong>',time:'5 hr ago'},
+  {type:'call',text:'<strong>Sarah K.</strong> scheduled a demo with <strong>RetailOne</strong>',time:'7 hr ago'},
+  {type:'lost',text:'<strong>Tom B.</strong> marked <strong>Global Logistics AI</strong> as lost',time:'Yesterday'},
+  {type:'email',text:'<strong>Marcus R.</strong> sent contract docs to <strong>Meridian Corp</strong>',time:'Yesterday'},
+  {type:'call',text:'<strong>Elena V.</strong> completed onboarding call with <strong>MedCore</strong>',time:'2 days ago'},
+  {type:'note',text:'<strong>Priya S.</strong> updated pricing on <strong>BrightPath Analytics</strong>',time:'2 days ago'},
+];
+
+const NOTIFICATIONS = [
+  {id:1,title:'Deal needs attention',body:'Apex Systems renewal closes in 4 days with no response.',time:'5 min ago',unread:true},
+  {id:2,title:'New lead assigned',body:'Quantum Pay has been assigned to Sarah K.',time:'1 hr ago',unread:true},
+  {id:3,title:'Goal milestone reached',body:'Marcus R. hit 80% of Q2 revenue target.',time:'3 hr ago',unread:true},
+  {id:4,title:'Contract signed 🎉',body:'HealthSync Onboarding — $75,000 closed won.',time:'3 hr ago',unread:false},
+  {id:5,title:'Meeting reminder',body:'Meridian Corp negotiation call at 2:00 PM today.',time:'8 hr ago',unread:false},
+];
+
+const TEAM = [
+  {name:'Sarah K.',revenue:410000,deals:14,color:'#22d3ee'},
+  {name:'Marcus R.',revenue:375000,deals:12,color:'#a78bfa'},
+  {name:'Elena V.',revenue:298000,deals:10,color:'#34d399'},
+  {name:'Priya S.',revenue:241000,deals:9,color:'#fbbf24'},
+  {name:'Tom B.',revenue:188000,deals:7,color:'#f87171'},
+];
+
+const GOALS_DATA = [
+  {label:'Pipeline Revenue',current:1840000,target:2500000,color:'var(--accent)'},
+  {label:'Closed Won',current:640000,target:864000,color:'var(--success)'},
+  {label:'New Leads',current:128,target:150,color:'var(--warning)'},
+  {label:'Win Rate',current:63,target:70,color:'var(--purple)',unit:'%'},
+  {label:'Avg Deal Size ($k)',current:39,target:50,color:'#fb923c',unit:'k'},
+];
+
+let pipeSort = {col:null,dir:1};
+
+/* ======================================================
+   NAV
+====================================================== */
+function navigate(page, el){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el) el.classList.add('active');
+  document.querySelectorAll('.page-view').forEach(p=>p.classList.remove('active'));
+  const pv = document.getElementById('page-'+page);
+  if(pv) pv.classList.add('active');
+  document.getElementById('topbar-title').textContent = {
+    dashboard:'Dashboard',pipeline:'Pipeline',contacts:'Contacts',
+    reports:'Reports',goals:'Goals',activity:'Activity'
+  }[page]||page;
+  // lazy render
+  if(page==='pipeline') renderKanban();
+  if(page==='contacts') renderContacts();
+  if(page==='reports') renderReports();
+  if(page==='goals') renderGoals();
+  if(page==='activity') renderFullActivity();
+}
+
+function toggleSidebar(){
+  const s = document.getElementById('sidebar');
+  s.classList.toggle('collapsed');
+  document.getElementById('collapse-icon').textContent = s.classList.contains('collapsed') ? '▶' : '◀';
+}
+
+/* ======================================================
+   TOAST
+====================================================== */
+function toast(msg,dur=3000){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>el.classList.remove('show'),dur);
+}
+
+/* ======================================================
+   NOTIFICATIONS
+====================================================== */
+function toggleNotif(){
+  document.getElementById('notif-panel').classList.toggle('open');
+  renderNotifs();
+}
+function renderNotifs(){
+  const el=document.getElementById('notif-list');
+  el.innerHTML=NOTIFICATIONS.map(n=>`
+    <div class="notif-item ${n.unread?'unread':''}" onclick="readNotif(${n.id})">
+      <div class="notif-item-title">${n.title}</div>
+      <div class="notif-item-body">${n.body}</div>
+      <div class="notif-item-time">${n.time}</div>
+    </div>`).join('');
+}
+function readNotif(id){
+  const n=NOTIFICATIONS.find(x=>x.id===id);
+  if(n) n.unread=false;
+  renderNotifs();
+}
+function markAllRead(){
+  NOTIFICATIONS.forEach(n=>n.unread=false);
+  renderNotifs();
+  toast('All notifications marked as read');
+}
+
+/* ======================================================
+   SPARKLINES
+====================================================== */
+function drawSparkline(svgId, data, color='#22d3ee'){
+  const svg=document.getElementById(svgId);
+  if(!svg) return;
+  const W=160,H=36,pad=3;
+  const mn=Math.min(...data), mx=Math.max(...data);
+  const range=mx-mn||1;
+  const pts=data.map((v,i)=>{
+    const x=pad+(i/(data.length-1))*(W-pad*2);
+    const y=H-pad-((v-mn)/range)*(H-pad*2);
+    return `${x},${y}`;
+  });
+  const areaBottom=pts.map((p,i)=>{
+    if(i===0) return `L${p.split(',')[0]},${H}`;
+    if(i===data.length-1) return `L${p.split(',')[0]},${H} Z`;
+    return '';
+  }).join('');
+  svg.innerHTML=`
+    <defs><linearGradient id="sg-${svgId}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${color}" stop-opacity=".3"/>
+      <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+    </linearGradient></defs>
+    <path d="M${pts.join(' L')} L${pts[pts.length-1].split(',')[0]},${H} L${pts[0].split(',')[0]},${H} Z"
+      fill="url(#sg-${svgId})"/>
+    <polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  `;
+}
+
+/* ======================================================
+   REVENUE BAR / LINE CHART
+====================================================== */
+let currentRevTab='bar';
+function switchRevTab(type,btn){
+  currentRevTab=type;
+  document.querySelectorAll('.tabs .tab-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderRevenueChart();
+}
+function renderRevenueChart(){
+  const el=document.getElementById('revenue-chart');
+  if(!el) return;
+  const W=560,H=220,padL=44,padB=30,padT=16,padR=16;
+  const labels=REVENUE_DATA.labels;
+  const actual=REVENUE_DATA.actual;
+  const target=REVENUE_DATA.target;
+  const maxVal=Math.max(...actual,...target)*1.1;
+  const nBars=labels.length;
+  const bw=currentRevTab==='bar'?((W-padL-padR)/(nBars*2.5)):0;
+  const gap=currentRevTab==='bar'?(W-padL-padR)/nBars:0;
+
+  // y grid
+  const yTicks=5;
+  let gridLines='',yLabels='';
+  for(let i=0;i<=yTicks;i++){
+    const v=Math.round((maxVal/yTicks)*i);
+    const y=H-padB-((v/maxVal)*(H-padT-padB));
+    gridLines+=`<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="rgba(148,163,184,.1)" stroke-dasharray="3,4"/>`;
+    yLabels+=`<text x="${padL-6}" y="${y+4}" fill="#8facc8" font-size="9" text-anchor="end">${v>=1000?Math.round(v/1000)+'k':v}</text>`;
   }
 
-  // ---- Pages ----
-  function showPage(name) {
-    document.getElementById("page-hero").style.display = "none";
-    document.getElementById("page-catalog").style.display = "none";
-    document.getElementById("page-orders").style.display = "none";
-    document.getElementById("page-" + name).style.display = "block";
-    if (name === "orders") loadOrders();
-    if (name === "catalog") renderProducts();
-    window.scrollTo(0, 0);
-  }
+  let bars='', actLine='', tgtLine='', dots='';
 
-  function renderCrmDeals() {
-    const list = document.getElementById('deal-list');
-    list.innerHTML = crmDeals.map(d => `
-      <button class="deal-card" type="button" onclick="selectDeal('${d.id}')" data-id="${d.id}">
-        <div>
-          <strong>${d.name}</strong>
-          <span>${d.stage}</span>
-        </div>
-        <small>${d.owner}</small>
-      </button>
-    `).join('');
-  }
-
-  function selectDeal(id) {
-    const deal = crmDeals.find(d => d.id === id);
-    if (!deal) return;
-    document.getElementById('deal-title').textContent = `${deal.name} · ${deal.score}`;
-    document.getElementById('deal-summary').textContent = deal.summary;
-    document.getElementById('deal-points').innerHTML = deal.points.map(p => `<li>${p}</li>`).join('');
-    document.querySelectorAll('.deal-card').forEach(card => card.classList.toggle('active', card.dataset.id === id));
-  }
-
-  function renderCrmProducts() {
-    const grid = document.getElementById('crm-product-grid');
-    grid.innerHTML = crmProducts.map(p => `
-      <button class="product-card crm-product-card" type="button" onclick="selectProduct('${p.id}')" data-pid="${p.id}">
-        <div class="product-img" style="background:linear-gradient(145deg,#172554,#0f172a);"></div>
-        <div class="product-info">
-          <p class="product-cat">${p.category}</p>
-          <h4>${p.name}</h4>
-          <div class="product-footer">
-            <span class="product-price">$${p.price.toFixed(2)}</span>
-            <span class="product-min">${p.status}</span>
-          </div>
-        </div>
-      </button>
-    `).join('');
-  }
-
-  function selectProduct(id) {
-    const product = crmProducts.find(p => p.id === id);
-    if (!product) return;
-    document.getElementById('product-title').textContent = product.name;
-    document.getElementById('product-description').textContent = product.description;
-    document.getElementById('product-metrics').innerHTML = product.metrics.map(m => `<span class="metric-pill">${m}</span>`).join('');
-    document.querySelectorAll('.crm-product-card').forEach(card => card.classList.toggle('active', card.dataset.pid === id));
-  }
-
-  // ---- Products ----
-  async function loadProducts() {
-    const res = await fetch(`${API}/products`);
-    allProducts = await res.json();
-    renderProducts();
-  }
-
-  async function loadCategories() {
-    const res = await fetch(`${API}/categories`);
-    const cats = await res.json();
-    const sel = document.getElementById("cat-filter");
-    cats.forEach(c => {
-      const opt = document.createElement("option");
-      opt.value = c; opt.textContent = c;
-      sel.appendChild(opt);
+  if(currentRevTab==='bar'){
+    bars=actual.map((v,i)=>{
+      const x=padL+i*gap;
+      const ah=((v/maxVal)*(H-padT-padB));
+      const th=((target[i]/maxVal)*(H-padT-padB));
+      const ay=H-padB-ah, ty=H-padB-th;
+      const bx=x+(gap-bw*2-4)/2;
+      return `
+        <rect x="${bx}" y="${ay}" width="${bw}" height="${ah}" rx="3" fill="var(--accent)" opacity=".9" class="bar-actual" data-v="${v}k">
+          <title>Actual: $${v}k</title>
+        </rect>
+        <rect x="${bx+bw+4}" y="${ty}" width="${bw}" height="${th}" rx="3" fill="rgba(167,139,250,.55)" class="bar-target">
+          <title>Target: $${target[i]}k</title>
+        </rect>`;
+    }).join('');
+  } else {
+    // line chart
+    const pts=actual.map((v,i)=>{
+      const x=padL+i*(W-padL-padR)/(nBars-1);
+      const y=H-padB-((v/maxVal)*(H-padT-padB));
+      return {x,y,v};
     });
-  }
-
-  function filterProducts() {
-    renderProducts();
-  }
-
-  function renderProducts() {
-    const search = document.getElementById("search-input")?.value?.toLowerCase() || "";
-    const cat = document.getElementById("cat-filter")?.value || "";
-    let list = allProducts.filter(p => {
-      const matchSearch = p.name.toLowerCase().includes(search);
-      const matchCat = !cat || p.category === cat;
-      return matchSearch && matchCat;
+    const tpts=target.map((v,i)=>{
+      const x=padL+i*(W-padL-padR)/(nBars-1);
+      const y=H-padB-((v/maxVal)*(H-padT-padB));
+      return {x,y};
     });
-    const grid = document.getElementById("product-grid");
-    if (!list.length) { grid.innerHTML = '<p class="empty">No products found.</p>'; return; }
-    grid.innerHTML = list.map(p => `
-      <div class="product-card" onclick="openProduct('${p.id}')">
-        <div class="product-img" style="background-image:url('${p.image_url}')"></div>
-        <div class="product-info">
-          <p class="product-cat">${p.category}</p>
-          <h4>${p.name}</h4>
-          <div class="product-footer">
-            <span class="product-price">$${p.price.toFixed(2)}<small>/unit</small></span>
-            <span class="product-min">Min ${p.min_order}</span>
-          </div>
+    const aPath='M'+pts.map(p=>`${p.x},${p.y}`).join(' L');
+    const tPath='M'+tpts.map(p=>`${p.x},${p.y}`).join(' L');
+    const aFill=aPath+` L${pts[pts.length-1].x},${H-padB} L${pts[0].x},${H-padB} Z`;
+    actLine=`
+      <defs><linearGradient id="lfill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="var(--accent)" stop-opacity=".25"/>
+        <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
+      </linearGradient></defs>
+      <path d="${aFill}" fill="url(#lfill)"/>
+      <path d="${aPath}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="${tPath}" fill="none" stroke="rgba(167,139,250,.7)" stroke-width="1.5" stroke-dasharray="5,4"/>`;
+    dots=pts.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="4" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"><title>$${p.v}k</title></circle>`).join('');
+  }
+
+  const xLabels=labels.map((l,i)=>{
+    const x=currentRevTab==='bar'?padL+i*gap+gap/2:padL+i*(W-padL-padR)/(nBars-1);
+    return `<text x="${x}" y="${H-4}" fill="#8facc8" font-size="9" text-anchor="middle">${l}</text>`;
+  }).join('');
+
+  const legend=`
+    <rect x="${padL}" y="4" width="10" height="10" rx="2" fill="var(--accent)"/>
+    <text x="${padL+14}" y="13" fill="#c8d8f0" font-size="9">Actual</text>
+    <rect x="${padL+60}" y="4" width="10" height="10" rx="2" fill="rgba(167,139,250,.7)"/>
+    <text x="${padL+74}" y="13" fill="#c8d8f0" font-size="9">Target</text>`;
+
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;overflow:visible">
+    ${gridLines}${yLabels}${bars}${actLine}${dots}${xLabels}${legend}
+  </svg>`;
+}
+
+/* ======================================================
+   DONUT CHART
+====================================================== */
+function renderDonut(){
+  const stages=['Prospecting','Qualified','Proposal','Negotiation','Closed Won'];
+  const counts=stages.map(s=>DEALS.filter(d=>d.stage===s).length);
+  const total=counts.reduce((a,b)=>a+b,0)||1;
+  const colors=['#22d3ee','#a78bfa','#fbbf24','#fb923c','#34d399'];
+  const R=50,r=32,cx=70,cy=70;
+  let angle=-Math.PI/2;
+  let paths='';
+  counts.forEach((c,i)=>{
+    const pct=c/total;
+    const sweep=pct*2*Math.PI;
+    const x1=cx+R*Math.cos(angle), y1=cy+R*Math.sin(angle);
+    angle+=sweep;
+    const x2=cx+R*Math.cos(angle), y2=cy+R*Math.sin(angle);
+    const ix1=cx+r*Math.cos(angle-sweep), iy1=cy+r*Math.sin(angle-sweep);
+    const ix2=cx+r*Math.cos(angle), iy2=cy+r*Math.sin(angle);
+    const large=sweep>Math.PI?1:0;
+    if(pct>0) paths+=`<path d="M${x1},${y1} A${R},${R} 0 ${large},1 ${x2},${y2} L${ix2},${iy2} A${r},${r} 0 ${large},0 ${ix1},${iy1} Z"
+      fill="${colors[i]}" opacity=".9" style="cursor:pointer;transition:opacity .15s" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity='.9'">
+      <title>${stages[i]}: ${c} deals (${Math.round(pct*100)}%)</title></path>`;
+  });
+  const values=stages.map(s=>DEALS.filter(d=>d.stage===s).reduce((a,d)=>a+d.value,0));
+  document.getElementById('donut-chart').innerHTML=`
+    ${paths}
+    <text x="${cx}" y="${cy-6}" fill="#f0f6ff" font-size="20" font-weight="800" text-anchor="middle" font-family="Syne">${total}</text>
+    <text x="${cx}" y="${cy+10}" fill="#8facc8" font-size="8.5" text-anchor="middle">deals</text>`;
+  document.getElementById('donut-legend').innerHTML=stages.map((s,i)=>`
+    <div class="donut-item">
+      <div class="donut-dot" style="background:${colors[i]}"></div>
+      <span class="donut-label">${s}</span>
+      <span class="donut-pct">${counts[i]}</span>
+      <span class="donut-val">$${(values[i]/1000).toFixed(0)}k</span>
+    </div>`).join('');
+}
+
+/* ======================================================
+   HEATMAP
+====================================================== */
+function renderHeatmap(){
+  const el=document.getElementById('heatmap');
+  const days=49;
+  let html='';
+  for(let i=0;i<days;i++){
+    const v=Math.floor(Math.random()*12);
+    const d=new Date(); d.setDate(d.getDate()-days+i);
+    const label=`${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][i%7]} ${d.getMonth()+1}/${d.getDate()}: ${v} calls`;
+    let bg='var(--surface3)';
+    if(v>=9) bg='var(--accent)';
+    else if(v>=6) bg='rgba(34,211,238,.5)';
+    else if(v>=3) bg='rgba(34,211,238,.25)';
+    html+=`<div class="hm-cell" style="background:${bg}" data-tip="${label}" title="${label}"></div>`;
+  }
+  el.innerHTML=html;
+}
+
+/* ======================================================
+   DEALS TABLE (dashboard)
+====================================================== */
+function renderDashDeals(){
+  const tbody=document.getElementById('dash-deals-body');
+  if(!tbody) return;
+  const open=DEALS.filter(d=>d.stage!=='Closed Won'&&d.stage!=='Closed Lost').slice(0,6);
+  tbody.innerHTML=open.map(d=>`
+    <tr onclick="selectDeal(${d.id})" style="cursor:pointer">
+      <td><strong>${d.name}</strong><div style="font-size:.73rem;color:var(--muted)">${d.company}</div></td>
+      <td><span class="badge badge-${d.stage.toLowerCase().replace(' ','-')}">${d.stage}</span></td>
+      <td><strong>$${(d.value/1000).toFixed(0)}k</strong></td>
+      <td><span style="font-size:.82rem">${d.owner.split(' ')[0]}</span></td>
+      <td style="font-size:.78rem;color:var(--muted)">${d.close}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="progress-bar" style="width:50px"><div class="progress-fill" style="width:${d.prob}%;background:${d.prob>=70?'var(--success)':d.prob>=40?'var(--warning)':'var(--danger)'}"></div></div>
+          <span style="font-size:.75rem;color:var(--muted)">${d.prob}%</span>
         </div>
+      </td>
+    </tr>`).join('');
+}
+
+function selectDeal(id){
+  const deal=DEALS.find(d=>d.id===id);
+  if(!deal) return;
+  showModal('view-deal',deal);
+}
+
+/* ======================================================
+   ACTIVITY FEED
+====================================================== */
+const TYPE_CLASS={call:'ad-call',deal:'ad-deal',email:'ad-email',note:'ad-note',lost:'ad-lost'};
+const TYPE_ICON={call:'📞',deal:'💼',email:'✉️',note:'📝',lost:'❌'};
+function renderActivityFeed(){
+  const el=document.getElementById('activity-feed');
+  if(!el) return;
+  el.innerHTML=ACTIVITIES.slice(0,7).map(a=>`
+    <div class="activity-item">
+      <div class="activity-dot ${TYPE_CLASS[a.type]}">${TYPE_ICON[a.type]}</div>
+      <div class="activity-body">
+        <div class="activity-text">${a.text}</div>
+        <div class="activity-time">${a.time}</div>
       </div>
-    `).join("");
-  }
+    </div>`).join('');
+}
 
-  function openProduct(id) {
-    currentProduct = allProducts.find(p => p.id === id);
-    if (!currentProduct) return;
-    document.getElementById("pd-image").src = currentProduct.image_url;
-    document.getElementById("pd-name").textContent = currentProduct.name;
-    document.getElementById("pd-category").textContent = currentProduct.category;
-    document.getElementById("pd-price").textContent = currentProduct.price.toFixed(2);
-    document.getElementById("pd-min").textContent = currentProduct.min_order;
-    document.getElementById("pd-stock").textContent = currentProduct.stock;
-    document.getElementById("pd-qty").value = currentProduct.min_order;
-    document.getElementById("pd-qty").min = currentProduct.min_order;
-    showModal("product");
-  }
+function renderFullActivity(){
+  const el=document.getElementById('full-activity-feed');
+  if(!el) return;
+  el.innerHTML=ACTIVITIES.map(a=>`
+    <div class="activity-item">
+      <div class="activity-dot ${TYPE_CLASS[a.type]}">${TYPE_ICON[a.type]}</div>
+      <div class="activity-body">
+        <div class="activity-text">${a.text}</div>
+        <div class="activity-time">${a.time}</div>
+      </div>
+    </div>`).join('');
+  renderActivitySummary();
+  renderUpcomingTasks();
+}
+function renderActivitySummary(){
+  const el=document.getElementById('activity-summary-chart');
+  if(!el) return;
+  const data=[{label:'Calls',count:14,color:'var(--accent)'},{label:'Emails',count:22,color:'var(--purple)'},
+    {label:'Meetings',count:6,color:'var(--success)'},{label:'Notes',count:18,color:'var(--warning)'}];
+  const max=Math.max(...data.map(d=>d.count));
+  el.innerHTML=data.map(d=>`
+    <div class="forecast-row">
+      <span class="fc-label">${d.label}</span>
+      <div class="fc-bar-wrap">
+        <div class="progress-bar"><div class="progress-fill" style="width:${(d.count/max)*100}%;background:${d.color}"></div></div>
+      </div>
+      <span class="fc-value" style="color:${d.color}">${d.count}</span>
+    </div>`).join('');
+}
+function renderUpcomingTasks(){
+  const el=document.getElementById('upcoming-tasks');
+  if(!el) return;
+  const tasks=[
+    {text:'Follow up: Apex renewal',due:'Today',urgent:true},
+    {text:'Send proposal to FinVault',due:'Tomorrow',urgent:false},
+    {text:'NovaTech discovery call',due:'Jun 14',urgent:false},
+    {text:'Meridian contract review',due:'Jun 15',urgent:false},
+  ];
+  el.innerHTML=tasks.map(t=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(148,163,184,.07)">
+      <input type="checkbox" style="cursor:pointer;accent-color:var(--accent)" onchange="this.closest('div').style.opacity='.4'"/>
+      <span style="flex:1;font-size:.84rem">${t.text}</span>
+      <span style="font-size:.73rem;padding:2px 8px;border-radius:99px;background:${t.urgent?'rgba(248,113,113,.12)':'var(--surface3)'};color:${t.urgent?'var(--danger)':'var(--muted)'}">${t.due}</span>
+    </div>`).join('');
+}
 
-  // ---- Cart ----
-  function addToCartFromModal() {
-    if (!token) { closeModal(); showModal("login"); return; }
-    const qty = parseInt(document.getElementById("pd-qty").value);
-    if (qty < currentProduct.min_order) { toast(`Minimum order is ${currentProduct.min_order} units`); return; }
-    const existing = cart.find(i => i.product_id === currentProduct.id);
-    if (existing) { existing.quantity += qty; } else {
-      cart.push({ product_id: currentProduct.id, name: currentProduct.name, price: currentProduct.price, quantity: qty, min_order: currentProduct.min_order });
-    }
-    saveCart();
-    closeModal();
-    toast(`${currentProduct.name} added to cart`);
-  }
+/* ======================================================
+   LEADERBOARD
+====================================================== */
+function renderLeaderboard(){
+  const el=document.getElementById('leaderboard');
+  if(!el) return;
+  const rankClasses=['gold','silver','bronze','',''];
+  el.innerHTML=TEAM.map((m,i)=>`
+    <div class="leaderboard-row">
+      <div class="lb-rank ${rankClasses[i]}">${i+1}</div>
+      <div class="lb-avatar" style="background:${m.color}">${m.name.split(' ').map(x=>x[0]).join('')}</div>
+      <div class="lb-info">
+        <div class="lb-name">${m.name}</div>
+        <div style="margin-top:4px"><div class="progress-bar" style="width:100px">
+          <div class="progress-fill" style="width:${Math.round(m.revenue/TEAM[0].revenue*100)}%;background:${m.color}"></div>
+        </div></div>
+      </div>
+      <div class="lb-stats">
+        <div class="lb-revenue" style="color:${m.color}">$${(m.revenue/1000).toFixed(0)}k</div>
+        <div class="lb-deals">${m.deals} deals</div>
+      </div>
+    </div>`).join('');
+}
 
-  function saveCart() {
-    localStorage.setItem("fb_cart", JSON.stringify(cart));
-    updateCartBadge();
-  }
-
-  function updateCartBadge() {
-    const total = cart.reduce((s, i) => s + i.quantity, 0);
-    document.getElementById("cart-count").textContent = total;
-  }
-
-  function toggleCart() {
-    const sidebar = document.getElementById("cart-sidebar");
-    sidebar.classList.toggle("open");
-    renderCart();
-  }
-
-  function renderCart() {
-    const el = document.getElementById("cart-items");
-    const footer = document.getElementById("cart-footer");
-    if (!cart.length) { el.innerHTML = '<p class="empty-cart">Your cart is empty.</p>'; footer.style.display = "none"; return; }
-    let total = 0;
-    el.innerHTML = cart.map((item, i) => {
-      const sub = item.price * item.quantity;
-      total += sub;
-      return `<div class="cart-item">
-        <div class="cart-item-info">
-          <strong>${item.name}</strong>
-          <small>${item.quantity} × $${item.price.toFixed(2)}</small>
+/* ======================================================
+   KANBAN
+====================================================== */
+let dragDeal=null;
+function renderKanban(){
+  const board=document.getElementById('kanban-board');
+  if(!board) return;
+  const stagesK=['Prospecting','Qualified','Proposal','Negotiation','Closed Won','Closed Lost'];
+  const stageColors2=['#22d3ee','#a78bfa','#fbbf24','#fb923c','#34d399','#f87171'];
+  board.innerHTML=stagesK.map((stage,si)=>{
+    const deals=DEALS.filter(d=>d.stage===stage);
+    const total=deals.reduce((a,d)=>a+d.value,0);
+    return `
+      <div class="kanban-col" id="kcol-${stage.replace(' ','-')}"
+        ondragover="event.preventDefault();this.classList.add('drag-over')"
+        ondragleave="this.classList.remove('drag-over')"
+        ondrop="dropDeal(event,'${stage}')">
+        <div class="kanban-col-header">
+          <span class="kanban-col-title" style="color:${stageColors2[si]}">${stage}</span>
+          <span class="kanban-count">${deals.length}</span>
         </div>
-        <div class="cart-item-right">
-          <span>$${sub.toFixed(2)}</span>
-          <button onclick="removeFromCart(${i})">✕</button>
+        <div style="font-size:.72rem;color:var(--muted);margin-bottom:10px">$${(total/1000).toFixed(0)}k total</div>
+        <div class="kanban-cards">
+          ${deals.map(d=>kanbanCard(d)).join('')}
         </div>
       </div>`;
-    }).join("");
-    document.getElementById("cart-total").textContent = total.toFixed(2);
-    footer.style.display = "block";
+  }).join('');
+  renderPipeList();
+}
+function kanbanCard(d){
+  const oi=OWNERS.indexOf(d.owner);
+  const oc=oi>=0?OWNER_COLORS[oi]:'#22d3ee';
+  const ini=oi>=0?OWNER_INITIALS[oi]:'?';
+  return `<div class="kanban-card" draggable="true"
+    ondragstart="dragDeal=${d.id};this.classList.add('dragging')"
+    ondragend="this.classList.remove('dragging')"
+    onclick="selectDeal(${d.id})">
+    <div class="kc-title">${d.name}</div>
+    <div class="kc-company">${d.company}</div>
+    <div class="kc-footer">
+      <span class="kc-value">$${(d.value/1000).toFixed(0)}k</span>
+      <div class="kc-avatar" style="background:${oc}">${ini}</div>
+    </div>
+    <div class="kc-prob">Prob: ${d.prob}%</div>
+    <div class="kc-bar"><div class="kc-bar-fill" style="width:${d.prob}%"></div></div>
+  </div>`;
+}
+function dropDeal(event,stage){
+  event.preventDefault();
+  document.querySelectorAll('.kanban-col').forEach(c=>c.classList.remove('drag-over'));
+  const deal=DEALS.find(d=>d.id===dragDeal);
+  if(deal&&deal.stage!==stage){
+    deal.stage=stage;
+    renderKanban();
+    toast(`Moved "${deal.name}" → ${stage}`);
+    // update donut if dashboard visible
+    renderDonut();
+    renderDashDeals();
   }
+  dragDeal=null;
+}
 
-  function removeFromCart(i) {
-    cart.splice(i, 1);
-    saveCart();
-    renderCart();
+/* ===== PIPE LIST ===== */
+let pipeView='kanban';
+function togglePipeView(){
+  const board=document.getElementById('kanban-board');
+  const list=document.getElementById('pipe-list-view');
+  if(pipeView==='kanban'){
+    board.style.display='none'; list.style.display='block'; pipeView='list';
+    document.querySelector('[onclick=togglePipeView]').textContent='⊞ Kanban View';
+  } else {
+    board.style.display='flex'; list.style.display='none'; pipeView='kanban';
+    document.querySelector('[onclick=togglePipeView]').textContent='⊞ List View';
   }
+}
+function renderPipeList(data){
+  const tbody=document.getElementById('pipe-list-body');
+  if(!tbody) return;
+  (data||DEALS).forEach(d=>{
+    const oi=OWNERS.indexOf(d.owner);
+    const oc=oi>=0?OWNER_COLORS[oi]:'#22d3ee';
+    const ini=oi>=0?OWNER_INITIALS[oi]:'?';
+    tbody.innerHTML=(data||DEALS).map(d=>`
+      <tr onclick="selectDeal(${d.id})" style="cursor:pointer">
+        <td><strong>${d.name}</strong></td>
+        <td style="font-size:.8rem;color:var(--muted)">${d.company}</td>
+        <td><span class="badge badge-${(d.stage||'').toLowerCase().replace(/ /g,'-')}">${d.stage}</span></td>
+        <td><strong>$${(d.value/1000).toFixed(0)}k</strong></td>
+        <td>${d.owner}</td>
+        <td style="font-size:.78rem;color:var(--muted)">${d.close}</td>
+        <td>
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showModal('add-deal',${d.id})">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteDeal(${d.id})">Del</button>
+        </td>
+      </tr>`).join('');
+  });
+}
+function sortPipe(col){
+  if(pipeSort.col===col) pipeSort.dir*=-1; else {pipeSort.col=col;pipeSort.dir=1;}
+  const sorted=[...DEALS].sort((a,b)=>{
+    const av=a[col]||'',bv=b[col]||'';
+    if(typeof av==='number') return (av-bv)*pipeSort.dir;
+    return String(av).localeCompare(String(bv))*pipeSort.dir;
+  });
+  renderPipeList(sorted);
+}
+function filterPipeline(q){
+  const f=DEALS.filter(d=>d.name.toLowerCase().includes(q.toLowerCase())||d.company.toLowerCase().includes(q.toLowerCase()));
+  renderPipeList(f);
+}
+function filterOwner(owner){
+  renderPipeList(owner?DEALS.filter(d=>d.owner===owner):DEALS);
+}
+function filterValue(min){
+  renderPipeList(min?DEALS.filter(d=>d.value>=parseInt(min)):DEALS);
+}
+function deleteDeal(id){
+  if(!confirm('Delete this deal?')) return;
+  const i=DEALS.findIndex(d=>d.id===id);
+  if(i>=0){DEALS.splice(i,1); renderKanban(); renderDashDeals(); renderDonut(); toast('Deal deleted');}
+}
 
-  async function placeOrder() {
-    if (!token) { toggleCart(); showModal("login"); return; }
-    const address = document.getElementById("shipping-address").value.trim();
-    if (!address) { toast("Please enter a shipping address"); return; }
-    const body = {
-      items: cart.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
-      shipping_address: address,
-    };
-    const res = await fetch(`${API}/orders`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-      body: JSON.stringify(body),
-    });
-    const data = await res.json();
-    if (!res.ok) { toast(data.detail || "Order failed"); return; }
-    cart = [];
-    saveCart();
-    renderCart();
-    toggleCart();
-    toast("Order placed! ✓");
-    showPage("orders");
-  }
+/* ======================================================
+   CONTACTS
+====================================================== */
+let contactFilter='',contactStatusFilter='',contactIndustryFilter='';
+function renderContacts(){
+  const tbody=document.getElementById('contacts-body');
+  if(!tbody) return;
+  let data=CONTACTS;
+  if(contactFilter) data=data.filter(c=>c.name.toLowerCase().includes(contactFilter)||c.company.toLowerCase().includes(contactFilter)||c.email.toLowerCase().includes(contactFilter));
+  if(contactStatusFilter) data=data.filter(c=>c.status===contactStatusFilter);
+  if(contactIndustryFilter) data=data.filter(c=>c.industry===contactIndustryFilter);
+  const statusColors={Customer:'var(--success)',Prospect:'var(--accent)',Lead:'var(--warning)',Churned:'var(--danger)'};
+  tbody.innerHTML=data.map(c=>`
+    <tr style="cursor:pointer" onclick="showContact(${c.id})">
+      <td><div style="display:flex;align-items:center;gap:8px">
+        <div class="contact-avatar" style="background:${['#22d3ee','#a78bfa','#34d399','#fbbf24','#f87171'][c.id%5]}">${c.name.split(' ').map(x=>x[0]).join('').slice(0,2)}</div>
+        <div><strong style="font-size:.875rem">${c.name}</strong><div style="font-size:.73rem;color:var(--muted)">${c.email}</div></div>
+      </div></td>
+      <td style="font-size:.84rem">${c.company}</td>
+      <td style="font-size:.78rem;color:var(--muted)">${c.industry}</td>
+      <td><span class="badge" style="background:${statusColors[c.status]}1a;color:${statusColors[c.status]}">${c.status}</span></td>
+      <td style="font-size:.84rem">${c.deals}</td>
+      <td style="font-size:.84rem;font-weight:600">$${(c.revenue/1000).toFixed(0)}k</td>
+      <td style="font-size:.78rem;color:var(--muted)">${c.last}</td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();toast('Email sent to ${c.name}')">Email</button>
+      </td>
+    </tr>`).join('');
+}
+function filterContacts(q){contactFilter=q.toLowerCase();renderContacts();}
+function filterContactStatus(s){contactStatusFilter=s;renderContacts();}
+function filterContactIndustry(i){contactIndustryFilter=i;renderContacts();}
+function showContact(id){
+  const c=CONTACTS.find(x=>x.id===id);
+  if(!c) return;
+  setModalBody(`
+    <h3>👤 ${c.name}</h3>
+    <p style="color:var(--muted);font-size:.85rem;margin-bottom:18px">${c.company} · ${c.industry}</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div class="card" style="padding:14px"><div class="card-label">Status</div><div style="font-weight:700">${c.status}</div></div>
+      <div class="card" style="padding:14px"><div class="card-label">Revenue</div><div style="font-weight:700">$${(c.revenue/1000).toFixed(0)}k</div></div>
+      <div class="card" style="padding:14px"><div class="card-label">Deals</div><div style="font-weight:700">${c.deals}</div></div>
+      <div class="card" style="padding:14px"><div class="card-label">Last Contact</div><div style="font-weight:700">${c.last}</div></div>
+    </div>
+    <div style="font-size:.85rem;color:var(--muted);margin-bottom:16px">📧 ${c.email}</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="toast('Email sent to ${c.name}');closeModal()">Send Email</button>
+      <button class="btn btn-outline" onclick="toast('Task created for ${c.name}');closeModal()">Create Task</button>
+    </div>`);
+  openModal();
+}
 
-  // ---- Orders ----
-  async function loadOrders() {
-    if (!token) { document.getElementById("orders-list").innerHTML = '<p class="empty">Please log in to view orders.</p>'; return; }
-    const res = await fetch(`${API}/orders`, { headers: { "Authorization": `Bearer ${token}` } });
-    const orders = await res.json();
-    const el = document.getElementById("orders-list");
-    if (!orders.length) { el.innerHTML = '<p class="empty">No orders yet.</p>'; return; }
-    el.innerHTML = orders.reverse().map(o => `
-      <div class="order-card">
-        <div class="order-head">
-          <span class="order-id">#${o.id.slice(0, 8).toUpperCase()}</span>
-          <span class="order-status status-${o.status}">${o.status}</span>
-          <span class="order-date">${o.created_at.slice(0, 10)}</span>
+/* ======================================================
+   REPORTS
+====================================================== */
+function renderReports(){
+  renderFunnelChart();
+  renderWinLossChart();
+  renderForecastTable();
+}
+function renderFunnelChart(){
+  const el=document.getElementById('funnel-chart');
+  if(!el) return;
+  const stages=[
+    {label:'Leads',count:128,conv:null},
+    {label:'Qualified',count:74,conv:58},
+    {label:'Proposal',count:42,conv:57},
+    {label:'Negotiation',count:28,conv:67},
+    {label:'Closed Won',count:18,conv:64},
+  ];
+  const maxW=100;
+  el.innerHTML=stages.map((s,i)=>{
+    const w=maxW-i*12;
+    return `
+      <div class="forecast-row">
+        <span class="fc-label">${s.label} <span style="font-size:.73rem;color:var(--muted)">(${s.count})</span></span>
+        <div style="flex:1;margin:0 12px">
+          <div class="progress-bar"><div class="progress-fill" style="width:${(s.count/128)*100}%;background:${STAGE_COLORS[i]}"></div></div>
         </div>
-        <div class="order-items">
-          ${o.items.map(i => `<span>${i.product_name} × ${i.quantity}</span>`).join("")}
+        <span style="font-size:.78rem;color:${s.conv?'var(--success)':'var(--muted)'}">
+          ${s.conv?s.conv+'% conv':'—'}
+        </span>
+      </div>`;
+  }).join('');
+}
+function renderWinLossChart(){
+  const el=document.getElementById('winloss-chart');
+  if(!el) return;
+  const wins=[
+    {label:'Better pricing',pct:34,color:'var(--success)'},
+    {label:'Strong relationship',pct:28,color:'var(--accent)'},
+    {label:'Feature fit',pct:22,color:'var(--purple)'},
+    {label:'Fast onboarding',pct:16,color:'var(--warning)'},
+  ];
+  const losses=[
+    {label:'Lost on price',pct:42,color:'var(--danger)'},
+    {label:'Chose competitor',pct:31,color:'#fb923c'},
+    {label:'No budget',pct:18,color:var_muted},
+    {label:'Timeline mismatch',pct:9,color:'var(--muted)'},
+  ];
+  el.innerHTML=`
+    <div style="font-size:.8rem;font-weight:600;color:var(--success);margin-bottom:8px">Why we WIN</div>
+    ${wins.map(w=>`<div class="forecast-row">
+      <span class="fc-label">${w.label}</span>
+      <div class="fc-bar-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${w.pct}%;background:${w.color}"></div></div></div>
+      <span class="fc-value">${w.pct}%</span>
+    </div>`).join('')}
+    <div style="font-size:.8rem;font-weight:600;color:var(--danger);margin:14px 0 8px">Why we LOSE</div>
+    ${losses.map(w=>`<div class="forecast-row">
+      <span class="fc-label">${w.label}</span>
+      <div class="fc-bar-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${w.pct}%;background:${w.color}"></div></div></div>
+      <span class="fc-value">${w.pct}%</span>
+    </div>`).join('')}`;
+}
+const var_muted="'#8facc8'";
+function renderForecastTable(){
+  const el=document.getElementById('forecast-table');
+  if(!el) return;
+  const rows=[
+    {cat:'Commit (90%+)',amount:380000,deals:6,color:'var(--success)'},
+    {cat:'Best Case (60–89%)',amount:520000,deals:9,color:'var(--accent)'},
+    {cat:'Pipeline (30–59%)',amount:340000,deals:8,color:'var(--warning)'},
+    {cat:'Long Shot (<30%)',amount:145000,deals:4,color:'var(--muted)'},
+  ];
+  const total=rows.reduce((a,r)=>a+r.amount,0);
+  el.innerHTML=`
+    <table class="data-table" style="width:100%">
+      <thead><tr><th>Category</th><th>Deals</th><th>Weighted Amount</th><th>% of Total</th><th>Confidence</th></tr></thead>
+      <tbody>
+        ${rows.map(r=>`<tr>
+          <td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${r.color};margin-right:6px"></span>${r.cat}</td>
+          <td>${r.deals}</td>
+          <td><strong>$${(r.amount/1000).toFixed(0)}k</strong></td>
+          <td>${Math.round(r.amount/total*100)}%</td>
+          <td><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:${r.amount/total*100}%;background:${r.color}"></div></div></td>
+        </tr>`).join('')}
+        <tr style="border-top:2px solid var(--border)">
+          <td><strong>Total Forecast</strong></td>
+          <td><strong>${rows.reduce((a,r)=>a+r.deals,0)}</strong></td>
+          <td><strong>$${(total/1000).toFixed(0)}k</strong></td>
+          <td colspan="2"></td>
+        </tr>
+      </tbody>
+    </table>`;
+}
+
+/* ======================================================
+   GOALS
+====================================================== */
+function renderGoals(){
+  const el=document.getElementById('goals-card');
+  if(!el) return;
+  el.innerHTML=`
+    <div class="card-label" style="margin-bottom:4px">Team Targets</div>
+    <div style="font-family:var(--font-d);font-size:1rem;font-weight:700;margin-bottom:18px">Q2 2025 Progress</div>
+    ${GOALS_DATA.map(g=>{
+      const pct=Math.min(100,Math.round((g.current/g.target)*100));
+      const fmt=v=>g.unit?`${typeof v==='number'&&v>=1000?(v/1000).toFixed(0)+'k':v}${g.unit}`:v>=1000?'$'+(v/1000).toFixed(0)+'k':v;
+      return `<div class="goal-item">
+        <div class="goal-header">
+          <span class="goal-title">${g.label}</span>
+          <span class="goal-numbers">${fmt(g.current)} / ${fmt(g.target)}</span>
         </div>
-        <div class="order-total">Total: <strong>$${o.total.toFixed(2)}</strong></div>
+        <div class="goal-bar"><div class="goal-fill" style="width:${pct}%;background:${g.color}"></div></div>
+        <div style="text-align:right;font-size:.72rem;color:var(--muted);margin-top:3px">${pct}%</div>
+      </div>`;
+    }).join('')}`;
+
+  const repEl=document.getElementById('rep-targets');
+  if(!repEl) return;
+  repEl.innerHTML=TEAM.map(m=>`
+    <div class="leaderboard-row">
+      <div class="lb-avatar" style="background:${m.color}">${m.name.split(' ').map(x=>x[0]).join('')}</div>
+      <div class="lb-info">
+        <div class="lb-name">${m.name}</div>
+        <div style="margin-top:4px;display:flex;align-items:center;gap:6px">
+          <div class="progress-bar" style="flex:1"><div class="progress-fill" style="width:${Math.round(m.revenue/500000*100)}%;background:${m.color}"></div></div>
+          <span style="font-size:.72rem;color:var(--muted)">${Math.round(m.revenue/500000*100)}%</span>
+        </div>
       </div>
-    `).join("");
-  }
+      <div style="text-align:right">
+        <div style="font-family:var(--font-d);font-size:.9rem;font-weight:800;color:${m.color}">$${(m.revenue/1000).toFixed(0)}k</div>
+        <div style="font-size:.72rem;color:var(--muted)">of $500k</div>
+      </div>
+    </div>`).join('');
+}
 
-  // ---- Auth ----
-  async function doLogin() {
-    const email = document.getElementById("login-email").value;
-    const password = document.getElementById("login-password").value;
-    const res = await fetch(`${API}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await res.json();
-    if (!res.ok) { document.getElementById("login-error").textContent = data.detail; return; }
-    token = data.token; userName = data.name;
-    localStorage.setItem("fb_token", token);
-    localStorage.setItem("fb_name", userName);
-    closeModal(); updateNav(); toast(`Welcome back, ${userName}!`);
-  }
+/* ======================================================
+   MODALS
+====================================================== */
+function setModalBody(html){document.getElementById('modal-body').innerHTML=html;}
+function openModal(){document.getElementById('modal-overlay').classList.add('open');}
+function closeModal(e){
+  if(!e||e.target===document.getElementById('modal-overlay'))
+    document.getElementById('modal-overlay').classList.remove('open');
+}
 
-  async function doRegister() {
-    const name = document.getElementById("reg-name").value;
-    const email = document.getElementById("reg-email").value;
-    const password = document.getElementById("reg-password").value;
-    const res = await fetch(`${API}/auth/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
-    });
-    const data = await res.json();
-    if (!res.ok) { document.getElementById("reg-error").textContent = data.detail; return; }
-    closeModal(); showModal("login"); toast("Account created — please log in.");
+function showModal(type,data){
+  if(type==='add-deal'){
+    const editDeal=typeof data==='number'?DEALS.find(d=>d.id===data):null;
+    setModalBody(`
+      <h3>${editDeal?'Edit Deal':'New Deal'}</h3>
+      <div class="form-row">
+        <div class="form-group"><label>Deal Name</label><input class="form-control" id="f-name" value="${editDeal?editDeal.name:''}" placeholder="e.g. Acme Corp Renewal"/></div>
+        <div class="form-group"><label>Company</label><input class="form-control" id="f-company" value="${editDeal?editDeal.company:''}" placeholder="Company name"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Value ($)</label><input class="form-control" id="f-value" type="number" value="${editDeal?editDeal.value:''}" placeholder="50000"/></div>
+        <div class="form-group"><label>Stage</label>
+          <select class="form-control" id="f-stage">
+            ${STAGES.map(s=>`<option ${editDeal&&editDeal.stage===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Owner</label>
+          <select class="form-control" id="f-owner">
+            ${OWNERS.map(o=>`<option ${editDeal&&editDeal.owner===o?'selected':''}>${o}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group"><label>Close Date</label><input class="form-control" id="f-close" type="date" value="${editDeal?editDeal.close:'2025-08-01'}"/></div>
+      </div>
+      <div class="form-group"><label>Probability (%)</label><input class="form-control" id="f-prob" type="range" min="0" max="100" value="${editDeal?editDeal.prob:50}" oninput="document.getElementById('f-prob-val').textContent=this.value+'%'"/><span id="f-prob-val">${editDeal?editDeal.prob:50}%</span></div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveDeal(${editDeal?editDeal.id:0})">${editDeal?'Save Changes':'Add Deal'}</button>
+      </div>`);
+  } else if(type==='view-deal'){
+    const d=data;
+    setModalBody(`
+      <h3>💼 ${d.name}</h3>
+      <p style="color:var(--muted);margin-bottom:18px">${d.company}</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+        <div class="card" style="padding:12px"><div class="card-label">Value</div><div style="font-weight:800;font-size:1.2rem">$${(d.value/1000).toFixed(0)}k</div></div>
+        <div class="card" style="padding:12px"><div class="card-label">Stage</div><span class="badge badge-${d.stage.toLowerCase().replace(' ','-')}">${d.stage}</span></div>
+        <div class="card" style="padding:12px"><div class="card-label">Owner</div><div style="font-weight:600">${d.owner}</div></div>
+        <div class="card" style="padding:12px"><div class="card-label">Close Date</div><div style="font-weight:600">${d.close}</div></div>
+      </div>
+      <div style="margin-bottom:16px">
+        <div style="font-size:.8rem;color:var(--muted);margin-bottom:6px">Close probability: ${d.prob}%</div>
+        <div class="progress-bar" style="height:8px"><div class="progress-fill" style="width:${d.prob}%;background:${d.prob>=70?'var(--success)':d.prob>=40?'var(--warning)':'var(--danger)'}"></div></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal()">Close</button>
+        <button class="btn btn-outline" onclick="closeModal();showModal('add-deal',${d.id})">Edit</button>
+        <button class="btn btn-primary" onclick="advanceDeal(${d.id})">Advance Stage →</button>
+      </div>`);
+  } else if(type==='add-contact'){
+    setModalBody(`
+      <h3>Add Contact</h3>
+      <div class="form-row">
+        <div class="form-group"><label>Full Name</label><input class="form-control" id="c-name" placeholder="Jane Smith"/></div>
+        <div class="form-group"><label>Email</label><input class="form-control" id="c-email" type="email" placeholder="jane@company.com"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Company</label><input class="form-control" id="c-company" placeholder="Company"/></div>
+        <div class="form-group"><label>Industry</label>
+          <select class="form-control" id="c-industry">
+            <option>SaaS</option><option>Finance</option><option>Healthcare</option><option>Retail</option><option>Manufacturing</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label>Status</label>
+        <select class="form-control" id="c-status">
+          <option>Lead</option><option>Prospect</option><option>Customer</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveContact()">Add Contact</button>
+      </div>`);
+  } else if(type==='add-goal'){
+    setModalBody(`
+      <h3>Set New Goal</h3>
+      <div class="form-group"><label>Goal Name</label><input class="form-control" placeholder="e.g. Q3 Pipeline Revenue"/></div>
+      <div class="form-row">
+        <div class="form-group"><label>Target Value</label><input class="form-control" type="number" placeholder="1000000"/></div>
+        <div class="form-group"><label>Owner</label>
+          <select class="form-control">${['Entire Team',...OWNERS].map(o=>`<option>${o}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="form-group"><label>Deadline</label><input class="form-control" type="date" value="2025-09-30"/></div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="toast('Goal saved!');closeModal()">Save Goal</button>
+      </div>`);
+  } else if(type==='log-activity'){
+    setModalBody(`
+      <h3>Log Activity</h3>
+      <div class="form-row">
+        <div class="form-group"><label>Type</label>
+          <select class="form-control"><option>Call</option><option>Email</option><option>Meeting</option><option>Note</option></select>
+        </div>
+        <div class="form-group"><label>Deal</label>
+          <select class="form-control">${DEALS.map(d=>`<option>${d.name}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="form-group"><label>Notes</label><textarea class="form-control" rows="3" placeholder="Summary of the activity…" style="resize:vertical"></textarea></div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="toast('Activity logged!');closeModal()">Log Activity</button>
+      </div>`);
   }
+  openModal();
+}
 
-  async function doLogout() {
-    await fetch(`${API}/auth/logout`, { method: "POST", headers: { "Authorization": `Bearer ${token}` } });
-    token = null; userName = null;
-    localStorage.removeItem("fb_token"); localStorage.removeItem("fb_name");
-    updateNav(); toast("Logged out.");
+function saveDeal(id){
+  const name=document.getElementById('f-name').value.trim();
+  const company=document.getElementById('f-company').value.trim();
+  const value=parseInt(document.getElementById('f-value').value)||0;
+  const stage=document.getElementById('f-stage').value;
+  const owner=document.getElementById('f-owner').value;
+  const close=document.getElementById('f-close').value;
+  const prob=parseInt(document.getElementById('f-prob').value)||50;
+  if(!name||!company){toast('Name and company required');return;}
+  if(id){
+    const d=DEALS.find(x=>x.id===id);
+    if(d) Object.assign(d,{name,company,value,stage,owner,close,prob});
+    toast('Deal updated!');
+  } else {
+    DEALS.push({id:Date.now(),name,company,stage,value,owner,close,prob,industry:'SaaS'});
+    toast('Deal added!');
   }
+  closeModal();
+  renderKanban(); renderDashDeals(); renderDonut();
+}
+function advanceDeal(id){
+  const d=DEALS.find(x=>x.id===id);
+  if(!d) return;
+  const stageOrder=['Prospecting','Qualified','Proposal','Negotiation','Closed Won'];
+  const idx=stageOrder.indexOf(d.stage);
+  if(idx<stageOrder.length-1){
+    d.stage=stageOrder[idx+1];
+    toast(`Moved to "${d.stage}"!`);
+    closeModal(); renderKanban(); renderDashDeals(); renderDonut();
+  } else toast('Already at final stage');
+}
+function saveContact(){
+  const name=document.getElementById('c-name').value.trim();
+  const email=document.getElementById('c-email').value.trim();
+  const company=document.getElementById('c-company').value.trim();
+  const industry=document.getElementById('c-industry').value;
+  const status=document.getElementById('c-status').value;
+  if(!name){toast('Name required');return;}
+  CONTACTS.push({id:Date.now(),name,email,company,industry,status,deals:0,revenue:0,last:new Date().toISOString().slice(0,10)});
+  closeModal(); renderContacts(); toast('Contact added!');
+}
 
-  // ---- Modal ----
-  function showModal(name) {
-    document.getElementById("modal-overlay").style.display = "flex";
-    ["login","register","product"].forEach(n => {
-      document.getElementById("modal-" + n).style.display = n === name ? "block" : "none";
-    });
-    document.getElementById("login-error").textContent = "";
-    document.getElementById("reg-error").textContent = "";
+/* ======================================================
+   SEARCH
+====================================================== */
+function globalSearch(q){
+  if(!q.trim()) return;
+  // highlight matching deals/contacts (simplified demo)
+  const dl=DEALS.filter(d=>d.name.toLowerCase().includes(q.toLowerCase()));
+  const cl=CONTACTS.filter(c=>c.name.toLowerCase().includes(q.toLowerCase()));
+  if(dl.length||cl.length){
+    toast(`Found ${dl.length} deal(s) and ${cl.length} contact(s) matching "${q}"`);
   }
+}
 
-  function closeModal() {
-    document.getElementById("modal-overlay").style.display = "none";
-  }
+/* ======================================================
+   DATE RANGE
+====================================================== */
+function setDateRange(range,el){
+  document.querySelectorAll('.date-range').forEach(d=>d.classList.remove('active'));
+  el.classList.add('active');
+  toast(`Viewing: ${range}`);
+}
 
-  // ---- Toast ----
-  function toast(msg) {
-    const el = document.getElementById("toast");
-    el.textContent = msg; el.classList.add("show");
-    setTimeout(() => el.classList.remove("show"), 3000);
-  }
+/* ======================================================
+   REFRESH KPIs (simulate live update)
+====================================================== */
+function refreshKPIs(){
+  const delta=(Math.random()-.3)*5;
+  const revenue=(1840+delta*20).toFixed(0);
+  document.getElementById('kv-revenue').textContent='$'+revenue+'k';
+  document.getElementById('kv-revenue').classList.remove('count-up');
+  void document.getElementById('kv-revenue').offsetWidth;
+  document.getElementById('kv-revenue').classList.add('count-up');
+  toast('KPIs refreshed ↺');
+}
+
+/* ======================================================
+   INIT
+====================================================== */
+function init(){
+  // sparklines
+  drawSparkline('spark-revenue',[98,112,128,145,162,151,180,195],'#22d3ee');
+  drawSparkline('spark-deals',[32,35,38,40,42,45,44,47],'#34d399');
+  drawSparkline('spark-win',[70,68,72,65,66,63,63,63],'#fbbf24');
+  drawSparkline('spark-cycle',[32,30,28,27,26,25,24,24],'#a78bfa');
+  renderRevenueChart();
+  renderDonut();
+  renderDashDeals();
+  renderActivityFeed();
+  renderLeaderboard();
+  renderHeatmap();
+
+  // live pulse: update a random KPI every 8s
+  setInterval(()=>{
+    const keys=['revenue','deals','win','cycle'];
+    const k=keys[Math.floor(Math.random()*keys.length)];
+    const el=document.getElementById('kv-'+k);
+    if(el){
+      el.classList.remove('count-up');
+      void el.offsetWidth;
+      el.classList.add('count-up');
+    }
+  },8000);
+}
+document.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
 </html>
