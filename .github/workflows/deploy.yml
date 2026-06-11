@@ -1,4 +1,4 @@
-name: CI/CD to EC2
+name: CI/CD to EC2 and Netlify
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
       - name: Confirm frontend assets exist
         run: test -f frontend/index.html && test -f frontend/index.css
 
-  deploy:
+  deploy-backend:
     needs: validate
     runs-on: ubuntu-latest
     steps:
@@ -46,14 +46,29 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i "$RUNNER_TEMP/ssh/ec2_key.pem" ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'mkdir -p /home/${{ secrets.EC2_USER }}/fashionbulk'
 
-      - name: Copy project files to EC2
+      - name: Copy backend files to EC2
         run: |
-          scp -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i "$RUNNER_TEMP/ssh/ec2_key.pem" -r backend frontend scripts ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/fashionbulk/
+          scp -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i "$RUNNER_TEMP/ssh/ec2_key.pem" -r backend scripts ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/fashionbulk/
 
-      - name: Run deployment on EC2
+      - name: Run backend deployment on EC2
         run: |
           ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i "$RUNNER_TEMP/ssh/ec2_key.pem" ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
             cd /home/${{ secrets.EC2_USER }}/fashionbulk
             chmod +x scripts/deploy-ec2.sh
             ./scripts/deploy-ec2.sh
           '
+
+  deploy-frontend:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy frontend to Netlify
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          npm install -g netlify-cli
+          netlify deploy --prod --dir frontend --site "$NETLIFY_SITE_ID" --auth "$NETLIFY_AUTH_TOKEN" --message "GitHub Actions deploy"
