@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_DIR="/home/ubuntu/fashionbulk"
+APP_DIR="${HOME}/fashionbulk"
 FRONTEND_DIR="/var/www/fashionbulk"
 SERVICE_FILE="/etc/systemd/system/fashionbulk.service"
 NGINX_SITE="/etc/nginx/sites-available/fashionbulk"
+SERVICE_USER="$(whoami)"
 
 echo "[1/6] Ensuring directories exist"
 sudo mkdir -p "$APP_DIR" "$FRONTEND_DIR" /etc/nginx/sites-available /etc/nginx/sites-enabled
@@ -28,9 +29,9 @@ Description=FashionBulk FastAPI
 After=network.target
 
 [Service]
-User=ubuntu
-WorkingDirectory=/home/ubuntu/fashionbulk
-ExecStart=/home/ubuntu/fashionbulk/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000
+User=${SERVICE_USER}
+WorkingDirectory=${APP_DIR}
+ExecStart=${APP_DIR}/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000
 Restart=always
 RestartSec=5
 

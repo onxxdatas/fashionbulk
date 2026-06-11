@@ -42,9 +42,12 @@ jobs:
           EOF
           chmod 600 "$RUNNER_TEMP/ssh/ec2_key.pem"
 
+      - name: Prepare remote deployment directory
+        run: |
+          ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i "$RUNNER_TEMP/ssh/ec2_key.pem" ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'mkdir -p /home/${{ secrets.EC2_USER }}/fashionbulk'
+
       - name: Copy project files to EC2
         run: |
-          mkdir -p /home/${{ secrets.EC2_USER }}/fashionbulk
           scp -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i "$RUNNER_TEMP/ssh/ec2_key.pem" -r backend frontend scripts ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/fashionbulk/
 
       - name: Run deployment on EC2
