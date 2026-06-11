@@ -35,6 +35,7 @@ cd frontend/
 netlify deploy --prod --dir .
 ```
 
+
 ---
 
 ## Current Netlify URL
@@ -54,11 +55,11 @@ Name:  @
 Value: 75.2.60.5
 ```
 
-Also add:
+If your registrar supports ALIAS/ANAME, you can instead use:
 ```
-Type:  A
+Type:  ALIAS / ANAME
 Name:  @
-Value: 99.83.190.102
+Value: apex-loadbalancer.netlify.com
 ```
 
 And for the www alias:
