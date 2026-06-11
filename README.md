@@ -15,6 +15,14 @@ Create these repository secrets in GitHub:
 - `EC2_HOST`: your EC2 public IP or DNS name
 - `EC2_USER`: the SSH user (usually `ubuntu`)
 - `EC2_SSH_KEY`: the private SSH key for the EC2 instance
+- `NETLIFY_AUTH_TOKEN`: your Netlify personal access token
+- `NETLIFY_SITE_ID`: your Netlify site ID
+
+### How to get the Netlify secrets
+1. In Netlify, open User settings → Applications → Personal access tokens
+2. Create a token and copy it as `NETLIFY_AUTH_TOKEN`
+3. Open your site → Site settings → General → Site details
+4. Copy the Site ID and save it as `NETLIFY_SITE_ID`
 
 ## Deploy
 Push to `main` and GitHub Actions will run automatically.
