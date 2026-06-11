@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FashionBulk — Wholesale Clothing</title>
+  <link rel="stylesheet" href="index.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ===== NAV ===== -->
+<header class="nav">
+  <a class="nav-logo" href="#">Fashion<span>Bulk</span></a>
+  <nav class="nav-links">
+    <a href="#" onclick="showPage('catalog')">Catalog</a>
+    <a href="#" onclick="showPage('orders')">My Orders</a>
+  </nav>
+  <div class="nav-auth" id="nav-auth">
+    <button class="btn btn-outline" onclick="showModal('login')">Log in</button>
+    <button class="btn btn-primary" onclick="showModal('register')">Register</button>
+  </div>
+</header>
+
+<!-- ===== HERO ===== -->
+<section class="hero" id="page-hero">
+  <div class="hero-text">
+    <p class="eyebrow">Wholesale · Minimum 15 units</p>
+    <h1>Stock your store<br/>with confidence.</h1>
+    <p class="hero-sub">Premium ready-to-wear at bulk prices. Register as a buyer and place your first order today.</p>
+    <button class="btn btn-primary btn-lg" onclick="showPage('catalog')">Browse Catalog →</button>
+  </div>
+  <div class="hero-visual">
+    <div class="hero-card">500+<span>SKUs available</span></div>
+    <div class="hero-card">30-day<span>delivery guarantee</span></div>
+    <div class="hero-card">$4.50<span>starting price/unit</span></div>
+  </div>
+</section>
+
+<!-- ===== CATALOG PAGE ===== -->
+<section class="page" id="page-catalog" style="display:none">
+  <div class="page-header">
+    <h2>Catalog</h2>
+    <div class="filters">
+      <input class="search-input" type="text" id="search-input" placeholder="Search products…" oninput="filterProducts()" />
+      <select id="cat-filter" onchange="filterProducts()">
+        <option value="">All categories</option>
+      </select>
+    </div>
+  </div>
+  <div class="product-grid" id="product-grid">
+    <div class="loading">Loading products…</div>
+  </div>
+</section>
+
+<!-- ===== ORDERS PAGE ===== -->
+<section class="page" id="page-orders" style="display:none">
+  <div class="page-header">
+    <h2>My Orders</h2>
+  </div>
+  <div id="orders-list">
+    <div class="loading">Loading orders…</div>
+  </div>
+</section>
+
+<!-- ===== CART SIDEBAR ===== -->
+<div class="cart-fab" id="cart-fab" onclick="toggleCart()">
+  🛒 <span id="cart-count">0</span>
+</div>
+
+<aside class="cart-sidebar" id="cart-sidebar">
+  <div class="cart-header">
+    <h3>Your Cart</h3>
+    <button class="close-btn" onclick="toggleCart()">✕</button>
+  </div>
+  <div id="cart-items"></div>
+  <div class="cart-footer" id="cart-footer" style="display:none">
+    <div class="cart-total">Total: $<span id="cart-total">0.00</span></div>
+    <input class="input" type="text" id="shipping-address" placeholder="Shipping address…" />
+    <button class="btn btn-primary" style="width:100%" onclick="placeOrder()">Place Order</button>
+  </div>
+</aside>
+
+<!-- ===== MODALS ===== -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+
+    <!-- Login -->
+    <div id="modal-login">
+      <h3>Log in</h3>
+      <input class="input" type="email" id="login-email" placeholder="Email" />
+      <input class="input" type="password" id="login-password" placeholder="Password" />
+      <div class="form-error" id="login-error"></div>
+      <button class="btn btn-primary" style="width:100%" onclick="doLogin()">Log in</button>
+      <p class="modal-switch">No account? <a href="#" onclick="showModal('register')">Register</a></p>
+    </div>
+
+    <!-- Register -->
+    <div id="modal-register" style="display:none">
+      <h3>Create account</h3>
+      <input class="input" type="text" id="reg-name" placeholder="Full name" />
+      <input class="input" type="email" id="reg-email" placeholder="Email" />
+      <input class="input" type="password" id="reg-password" placeholder="Password" />
+      <div class="form-error" id="reg-error"></div>
+      <button class="btn btn-primary" style="width:100%" onclick="doRegister()">Create account</button>
+      <p class="modal-switch">Have an account? <a href="#" onclick="showModal('login')">Log in</a></p>
+    </div>
+
+    <!-- Product detail -->
+    <div id="modal-product" style="display:none">
+      <img id="pd-image" src="" alt="" />
+      <h3 id="pd-name"></h3>
+      <p class="pd-category" id="pd-category"></p>
+      <div class="pd-meta">
+        <span>$<span id="pd-price"></span> / unit</span>
+        <span>Min. order: <strong id="pd-min"></strong> units</span>
+        <span>Stock: <strong id="pd-stock"></strong></span>
+      </div>
+      <div class="qty-row">
+        <label>Quantity</label>
+        <input class="input qty-input" type="number" id="pd-qty" value="50" min="1" />
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="addToCartFromModal()">Add to cart</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = "https://api.onxxdatas.space"; // change to http://localhost:8000 for local dev
+
+  let token = localStorage.getItem("fb_token") || null;
+  let userName = localStorage.getItem("fb_name") || null;
+  let cart = JSON.parse(localStorage.getItem("fb_cart") || "[]");
+  let allProducts = [];
+  let currentProduct = null;
+
+  // ---- Boot ----
+  window.onload = () => {
+    updateNav();
+    loadCategories();
+    loadProducts();
+  };
+
+  // ---- Nav ----
+  function updateNav() {
+    const el = document.getElementById("nav-auth");
+    if (token) {
+      el.innerHTML = `<span class="nav-user">👤 ${userName}</span>
+        <button class="btn btn-outline" onclick="doLogout()">Log out</button>`;
+    } else {
+      el.innerHTML = `<button class="btn btn-outline" onclick="showModal('login')">Log in</button>
+        <button class="btn btn-primary" onclick="showModal('register')">Register</button>`;
+    }
+    updateCartBadge();
+  }
+
+  // ---- Pages ----
+  function showPage(name) {
+    document.getElementById("page-hero").style.display = "none";
+    document.getElementById("page-catalog").style.display = "none";
+    document.getElementById("page-orders").style.display = "none";
+    document.getElementById("page-" + name).style.display = "block";
+    if (name === "orders") loadOrders();
+    if (name === "catalog") renderProducts();
+    window.scrollTo(0, 0);
+  }
+
+  // ---- Products ----
+  async function loadProducts() {
+    const res = await fetch(`${API}/products`);
+    allProducts = await res.json();
+    renderProducts();
+  }
+
+  async function loadCategories() {
+    const res = await fetch(`${API}/categories`);
+    const cats = await res.json();
+    const sel = document.getElementById("cat-filter");
+    cats.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c; opt.textContent = c;
+      sel.appendChild(opt);
+    });
+  }
+
+  function filterProducts() {
+    renderProducts();
+  }
+
+  function renderProducts() {
+    const search = document.getElementById("search-input")?.value?.toLowerCase() || "";
+    const cat = document.getElementById("cat-filter")?.value || "";
+    let list = allProducts.filter(p => {
+      const matchSearch = p.name.toLowerCase().includes(search);
+      const matchCat = !cat || p.category === cat;
+      return matchSearch && matchCat;
+    });
+    const grid = document.getElementById("product-grid");
+    if (!list.length) { grid.innerHTML = '<p class="empty">No products found.</p>'; return; }
+    grid.innerHTML = list.map(p => `
+      <div class="product-card" onclick="openProduct('${p.id}')">
+        <div class="product-img" style="background-image:url('${p.image_url}')"></div>
+        <div class="product-info">
+          <p class="product-cat">${p.category}</p>
+          <h4>${p.name}</h4>
+          <div class="product-footer">
+            <span class="product-price">$${p.price.toFixed(2)}<small>/unit</small></span>
+            <span class="product-min">Min ${p.min_order}</span>
+          </div>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  function openProduct(id) {
+    currentProduct = allProducts.find(p => p.id === id);
+    if (!currentProduct) return;
+    document.getElementById("pd-image").src = currentProduct.image_url;
+    document.getElementById("pd-name").textContent = currentProduct.name;
+    document.getElementById("pd-category").textContent = currentProduct.category;
+    document.getElementById("pd-price").textContent = currentProduct.price.toFixed(2);
+    document.getElementById("pd-min").textContent = currentProduct.min_order;
+    document.getElementById("pd-stock").textContent = currentProduct.stock;
+    document.getElementById("pd-qty").value = currentProduct.min_order;
+    document.getElementById("pd-qty").min = currentProduct.min_order;
+    showModal("product");
+  }
+
+  // ---- Cart ----
+  function addToCartFromModal() {
+    if (!token) { closeModal(); showModal("login"); return; }
+    const qty = parseInt(document.getElementById("pd-qty").value);
+    if (qty < currentProduct.min_order) { toast(`Minimum order is ${currentProduct.min_order} units`); return; }
+    const existing = cart.find(i => i.product_id === currentProduct.id);
+    if (existing) { existing.quantity += qty; } else {
+      cart.push({ product_id: currentProduct.id, name: currentProduct.name, price: currentProduct.price, quantity: qty, min_order: currentProduct.min_order });
+    }
+    saveCart();
+    closeModal();
+    toast(`${currentProduct.name} added to cart`);
+  }
+
+  function saveCart() {
+    localStorage.setItem("fb_cart", JSON.stringify(cart));
+    updateCartBadge();
+  }
+
+  function updateCartBadge() {
+    const total = cart.reduce((s, i) => s + i.quantity, 0);
+    document.getElementById("cart-count").textContent = total;
+  }
+
+  function toggleCart() {
+    const sidebar = document.getElementById("cart-sidebar");
+    sidebar.classList.toggle("open");
+    renderCart();
+  }
+
+  function renderCart() {
+    const el = document.getElementById("cart-items");
+    const footer = document.getElementById("cart-footer");
+    if (!cart.length) { el.innerHTML = '<p class="empty-cart">Your cart is empty.</p>'; footer.style.display = "none"; return; }
+    let total = 0;
+    el.innerHTML = cart.map((item, i) => {
+      const sub = item.price * item.quantity;
+      total += sub;
+      return `<div class="cart-item">
+        <div class="cart-item-info">
+          <strong>${item.name}</strong>
+          <small>${item.quantity} × $${item.price.toFixed(2)}</small>
+        </div>
+        <div class="cart-item-right">
+          <span>$${sub.toFixed(2)}</span>
+          <button onclick="removeFromCart(${i})">✕</button>
+        </div>
+      </div>`;
+    }).join("");
+    document.getElementById("cart-total").textContent = total.toFixed(2);
+    footer.style.display = "block";
+  }
+
+  function removeFromCart(i) {
+    cart.splice(i, 1);
+    saveCart();
+    renderCart();
+  }
+
+  async function placeOrder() {
+    if (!token) { toggleCart(); showModal("login"); return; }
+    const address = document.getElementById("shipping-address").value.trim();
+    if (!address) { toast("Please enter a shipping address"); return; }
+    const body = {
+      items: cart.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
+      shipping_address: address,
+    };
+    const res = await fetch(`${API}/orders`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (!res.ok) { toast(data.detail || "Order failed"); return; }
+    cart = [];
+    saveCart();
+    renderCart();
+    toggleCart();
+    toast("Order placed! ✓");
+    showPage("orders");
+  }
+
+  // ---- Orders ----
+  async function loadOrders() {
+    if (!token) { document.getElementById("orders-list").innerHTML = '<p class="empty">Please log in to view orders.</p>'; return; }
+    const res = await fetch(`${API}/orders`, { headers: { "Authorization": `Bearer ${token}` } });
+    const orders = await res.json();
+    const el = document.getElementById("orders-list");
+    if (!orders.length) { el.innerHTML = '<p class="empty">No orders yet.</p>'; return; }
+    el.innerHTML = orders.reverse().map(o => `
+      <div class="order-card">
+        <div class="order-head">
+          <span class="order-id">#${o.id.slice(0, 8).toUpperCase()}</span>
+          <span class="order-status status-${o.status}">${o.status}</span>
+          <span class="order-date">${o.created_at.slice(0, 10)}</span>
+        </div>
+        <div class="order-items">
+          ${o.items.map(i => `<span>${i.product_name} × ${i.quantity}</span>`).join("")}
+        </div>
+        <div class="order-total">Total: <strong>$${o.total.toFixed(2)}</strong></div>
+      </div>
+    `).join("");
+  }
+
+  // ---- Auth ----
+  async function doLogin() {
+    const email = document.getElementById("login-email").value;
+    const password = document.getElementById("login-password").value;
+    const res = await fetch(`${API}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) { document.getElementById("login-error").textContent = data.detail; return; }
+    token = data.token; userName = data.name;
+    localStorage.setItem("fb_token", token);
+    localStorage.setItem("fb_name", userName);
+    closeModal(); updateNav(); toast(`Welcome back, ${userName}!`);
+  }
+
+  async function doRegister() {
+    const name = document.getElementById("reg-name").value;
+    const email = document.getElementById("reg-email").value;
+    const password = document.getElementById("reg-password").value;
+    const res = await fetch(`${API}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) { document.getElementById("reg-error").textContent = data.detail; return; }
+    closeModal(); showModal("login"); toast("Account created — please log in.");
+  }
+
+  async function doLogout() {
+    await fetch(`${API}/auth/logout`, { method: "POST", headers: { "Authorization": `Bearer ${token}` } });
+    token = null; userName = null;
+    localStorage.removeItem("fb_token"); localStorage.removeItem("fb_name");
+    updateNav(); toast("Logged out.");
+  }
+
+  // ---- Modal ----
+  function showModal(name) {
+    document.getElementById("modal-overlay").style.display = "flex";
+    ["login","register","product"].forEach(n => {
+      document.getElementById("modal-" + n).style.display = n === name ? "block" : "none";
+    });
+    document.getElementById("login-error").textContent = "";
+    document.getElementById("reg-error").textContent = "";
+  }
+
+  function closeModal() {
+    document.getElementById("modal-overlay").style.display = "none";
+  }
+
+  // ---- Toast ----
+  function toast(msg) {
+    const el = document.getElementById("toast");
+    el.textContent = msg; el.classList.add("show");
+    setTimeout(() => el.classList.remove("show"), 3000);
+  }
+</script>
+</body>
+</html>
