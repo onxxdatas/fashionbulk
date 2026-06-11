@@ -13,8 +13,24 @@ sudo mkdir -p "$APP_DIR" "$FRONTEND_DIR" /etc/nginx/sites-available /etc/nginx/s
 cd "$APP_DIR"
 
 echo "[2/6] Installing system packages needed for Python venv"
-sudo apt-get update
-sudo apt-get install -y python3-venv python3-pip nginx
+for attempt in 1 2 3 4 5; do
+  if sudo fuser /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock /var/cache/apt/archives/lock >/dev/null 2>&1; then
+    echo "apt lock is busy; waiting 10 seconds (attempt $attempt/5)..."
+    sleep 10
+    continue
+  fi
+
+  sudo DEBIAN_FRONTEND=noninteractive apt-get update && \
+  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3-venv python3-pip nginx && break
+
+  echo "apt install failed; retrying in 10 seconds (attempt $attempt/5)..."
+  sleep 10
+ done
+
+if ! command -v python3 >/dev/null 2>&1 || ! python3 -m venv --help >/dev/null 2>&1; then
+  echo "Python venv setup failed after retries" >&2
+  exit 1
+fi
 
 echo "[3/6] Installing backend dependencies"
 python3 -m venv venv
@@ -27,7 +43,7 @@ sudo mkdir -p "$FRONTEND_DIR"
 sudo cp -r "$APP_DIR/frontend/." "$FRONTEND_DIR/"
 
 echo "[6/6] Creating systemd service"
-sudo tee "$SERVICE_FILE" > /dev/null <<'EOF'
+sudo tee "$SERVICE_FILE" > /dev/null <<EOF
 [Unit]
 Description=FashionBulk FastAPI
 After=network.target
