@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FashionBulk — Wholesale Clothing</title>
+  <title>PulseCRM — Sales Command Center</title>
   <link rel="stylesheet" href="index.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -12,10 +12,11 @@
 
 <!-- ===== NAV ===== -->
 <header class="nav">
-  <a class="nav-logo" href="#">Fashion<span>Bulk</span></a>
+  <a class="nav-logo" href="#">Pulse<span>CRM</span></a>
   <nav class="nav-links">
-    <a href="#" onclick="showPage('catalog')">Catalog</a>
-    <a href="#" onclick="showPage('orders')">My Orders</a>
+    <a href="#" onclick="showPage('catalog')">Dashboard</a>
+    <a href="#" onclick="showPage('orders')">Deals</a>
+    <a href="#" onclick="showPage('catalog')">Leads</a>
   </nav>
   <div class="nav-auth" id="nav-auth">
     <button class="btn btn-outline" onclick="showModal('login')">Log in</button>
@@ -26,22 +27,40 @@
 <!-- ===== HERO ===== -->
 <section class="hero" id="page-hero">
   <div class="hero-text">
-    <p class="eyebrow">Wholesale · Minimum 15 units</p>
-    <h1>remodule kerak<br/>emas</h1>
-    <p class="hero-sub">Premium ready-to-wear at bulk prices. Register as a buyer and place your first order today.</p>
-    <button class="btn btn-primary btn-lg" onclick="showPage('catalog')">Browse Remodule →</button>
+    <p class="eyebrow">CRM · Revenue Operations</p>
+    <h1>Run your sales pipeline from one clean command center.</h1>
+    <p class="hero-sub">Track leads, monitor deal health, assign follow-ups, and keep your team aligned in real time.</p>
+    <button class="btn btn-primary btn-lg" onclick="showPage('catalog')">Open dashboard →</button>
   </div>
   <div class="hero-visual">
-    <div class="hero-card">500+<span>SKUs available</span></div>
-    <div class="hero-card">30-day<span>delivery guarantee</span></div>
-    <div class="hero-card">$4.50<span>starting price/unit</span></div>
+    <div class="hero-card">18<span>active opportunities</span></div>
+    <div class="hero-card">92%<span>follow-up completion</span></div>
+    <div class="hero-card">$240k<span>pipeline value</span></div>
   </div>
+</section>
+
+<section class="crm-shell">
+  <article class="crm-card crm-card-accent">
+    <p class="mini-label">Today</p>
+    <h3>4 deals need attention</h3>
+    <p>Two renewals, one proposal review, and a high-value lead waiting for a call-back.</p>
+  </article>
+  <article class="crm-card">
+    <p class="mini-label">Win rate</p>
+    <h3>63% conversion</h3>
+    <p>Improved from last month through faster handoffs and weekly pipeline reviews.</p>
+  </article>
+  <article class="crm-card">
+    <p class="mini-label">Team activity</p>
+    <h3>12 follow-ups scheduled</h3>
+    <p>Automate your queue and keep every account moving without chasing manual notes.</p>
+  </article>
 </section>
 
 <!-- ===== CATALOG PAGE ===== -->
 <section class="page" id="page-catalog" style="display:none">
   <div class="page-header">
-    <h2>Catalog</h2>
+    <h2>Lead board</h2>
     <div class="filters">
       <input class="search-input" type="text" id="search-input" placeholder="Search products…" oninput="filterProducts()" />
       <select id="cat-filter" onchange="filterProducts()">
@@ -57,7 +76,7 @@
 <!-- ===== ORDERS PAGE ===== -->
 <section class="page" id="page-orders" style="display:none">
   <div class="page-header">
-    <h2>My Orders</h2>
+    <h2>Deal pipeline</h2>
   </div>
   <div id="orders-list">
     <div class="loading">Loading orders…</div>
