@@ -34,23 +34,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Create SSH key file
+        run: |
+          mkdir -p "$RUNNER_TEMP/ssh"
+          cat > "$RUNNER_TEMP/ssh/ec2_key.pem" <<'EOF'
+          ${{ secrets.EC2_SSH_KEY }}
+          EOF
+          chmod 600 "$RUNNER_TEMP/ssh/ec2_key.pem"
+
       - name: Copy project files to EC2
-        uses: appleboy/scp-action@v0.1.6
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          source: "backend/,frontend/,scripts/"
-          target: "/home/${{ secrets.EC2_USER }}/fashionbulk"
-          strip_components: 0
+        run: |
+          mkdir -p /home/${{ secrets.EC2_USER }}/fashionbulk
+          scp -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i "$RUNNER_TEMP/ssh/ec2_key.pem" -r backend frontend scripts ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/fashionbulk/
 
       - name: Run deployment on EC2
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
+        run: |
+          ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i "$RUNNER_TEMP/ssh/ec2_key.pem" ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
             cd /home/${{ secrets.EC2_USER }}/fashionbulk
             chmod +x scripts/deploy-ec2.sh
             ./scripts/deploy-ec2.sh
+          '
