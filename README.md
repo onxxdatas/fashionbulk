@@ -2,6 +2,9 @@
 
 This repo now includes a basic CI/CD pipeline for GitHub → EC2 deployment.
 
+Current frontend URL on Netlify:
+https://salomyangi.netlify.app/
+
 ## What is configured
 - GitHub Actions validates backend syntax on every push to `main`
 - The same workflow deploys the `backend/`, `frontend/`, and `scripts/` folders to your EC2 instance
@@ -19,10 +22,10 @@ Push to `main` and GitHub Actions will run automatically.
 You can also run the workflow manually from the Actions tab.
 
 ## Domain setup on your registrar
-After the EC2 instance is running, point these DNS records to the EC2 public IP:
-- `api.onxxdatas.space` → `A` record → your EC2 public IP
-- `fashionbulk.onxxdatas.space` → `A` record → your EC2 public IP
+Use these DNS records:
+- `api` → `A` record → your EC2 public IP
+- `www` → `CNAME` record → `salomyangi.netlify.app`
 
-This lets Nginx serve:
-- `https://api.onxxdatas.space` for the FastAPI backend
-- `https://fashionbulk.onxxdatas.space` for the static frontend
+This lets you expose:
+- `https://api.yourdomain.com` for the FastAPI backend
+- `https://yourdomain.com` for the Netlify frontend

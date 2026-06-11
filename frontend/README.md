@@ -37,19 +37,24 @@ netlify deploy --prod --dir .
 
 ---
 
-## Link your domain (onxxdatas.space)
+## Current Netlify URL
+Your frontend is currently live at:
+https://salomyangi.netlify.app/
 
-### 1. Add custom domain in Netlify
-- Netlify Dashboard → Site settings → Domain management → Add custom domain
-- Enter: `fashionbulk.onxxdatas.space`
+## Link your custom domain in Netlify
+1. Open Netlify → Site settings → Domain management
+2. Click Add custom domain
+3. Enter your real domain name, for example `yourdomain.com`
 
-### 2. Add DNS record at your registrar
-In your DNS panel for `onxxdatas.space`, add:
+## DNS record to add in your registrar
+In your Namecheap (or other registrar) DNS panel, add:
 ```
 Type:  CNAME
-Name:  fashionbulk
-Value: <your-netlify-site>.netlify.app
+Name:  www
+Value: salomyangi.netlify.app
 ```
+
+If Netlify shows root-domain records, add those exact A/ALIAS records too.
 
 Or if you want it at the root:
 ```
