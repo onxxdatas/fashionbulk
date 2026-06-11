@@ -13,7 +13,12 @@ app = FastAPI(title="FashionBulk API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://fashionbulk.onxxdatas.space", "http://localhost:3000", "*"],
+    allow_origins=[
+        "https://salomyangi.netlify.app",
+        "https://www.salomyangi.netlify.app",
+        "http://localhost:3000",
+        "http://localhost:8000",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
