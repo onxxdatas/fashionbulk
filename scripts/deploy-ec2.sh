@@ -21,21 +21,25 @@ for attempt in 1 2 3 4 5; do
   fi
 
   sudo DEBIAN_FRONTEND=noninteractive apt-get update && \
-  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3-venv python3-pip nginx && break
+  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends software-properties-common && \
+  sudo add-apt-repository -y ppa:deadsnakes/ppa && \
+  sudo DEBIAN_FRONTEND=noninteractive apt-get update && \
+  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3.12 python3.12-venv python3.12-dev python3-pip nginx build-essential && break
 
   echo "apt install failed; retrying in 10 seconds (attempt $attempt/5)..."
   sleep 10
  done
 
-if ! command -v python3 >/dev/null 2>&1 || ! python3 -m venv --help >/dev/null 2>&1; then
-  echo "Python venv setup failed after retries" >&2
+PYTHON_BIN="/usr/bin/python3.12"
+if ! [ -x "$PYTHON_BIN" ]; then
+  echo "Python 3.12 is not available on this EC2 instance" >&2
   exit 1
 fi
 
 echo "[3/6] Installing backend dependencies"
-python3 -m venv venv
+"$PYTHON_BIN" -m venv venv
 ./venv/bin/pip install --upgrade pip
-./venv/bin/pip install -r backend/requirements.txt
+./venv/bin/pip install --only-binary=:all: -r backend/requirements.txt
 
 echo "[4/6] Syncing frontend to Nginx root"
 sudo rm -rf "$FRONTEND_DIR"/*
