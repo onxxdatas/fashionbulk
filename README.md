@@ -30,10 +30,13 @@ Push to `main` and GitHub Actions will run automatically.
 You can also run the workflow manually from the Actions tab.
 
 ## Domain setup on your registrar
-Use these DNS records:
-- `api` → `A` record → your EC2 public IP
+Use these DNS records for the live custom domain setup:
+- `@` → `A` record → `75.2.60.5` and `99.83.190.102` (Netlify root-domain IPs)
 - `www` → `CNAME` record → `salomyangi.netlify.app`
+- `api` → `A` record → your EC2 public IP
 
 This lets you expose:
-- `https://api.yourdomain.com` for the FastAPI backend
-- `https://yourdomain.com` for the Netlify frontend
+- `https://api.onxxdatas.space` for the FastAPI backend
+- `https://onxxdatas.space` (or `https://www.onxxdatas.space`) for the Netlify frontend
+
+After changing DNS, wait 5–30 minutes for propagation, then add the custom domain in Netlify → Site settings → Domain management.

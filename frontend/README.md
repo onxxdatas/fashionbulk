@@ -49,18 +49,30 @@ https://salomyangi.netlify.app/
 ## DNS record to add in your registrar
 In your Namecheap (or other registrar) DNS panel, add:
 ```
+Type:  A
+Name:  @
+Value: 75.2.60.5
+```
+
+Also add:
+```
+Type:  A
+Name:  @
+Value: 99.83.190.102
+```
+
+And for the www alias:
+```
 Type:  CNAME
 Name:  www
 Value: salomyangi.netlify.app
 ```
 
-If Netlify shows root-domain records, add those exact A/ALIAS records too.
-
-Or if you want it at the root:
+For the backend API subdomain:
 ```
 Type:  A
-Name:  @
-Value: 75.2.60.5   (Netlify's load balancer IP)
+Name:  api
+Value: <EC2_PUBLIC_IP>
 ```
 
 ### 3. Enable HTTPS
@@ -72,6 +84,6 @@ Netlify provisions a free Let's Encrypt cert automatically once DNS propagates (
 
 | Service | URL |
 |---------|-----|
-| Frontend | https://fashionbulk.onxxdatas.space |
+| Frontend | https://onxxdatas.space |
 | Backend API | https://api.onxxdatas.space |
 | API Docs | https://api.onxxdatas.space/docs |

@@ -16,6 +16,8 @@ app.add_middleware(
     allow_origins=[
         "https://salomyangi.netlify.app",
         "https://www.salomyangi.netlify.app",
+        "https://onxxdatas.space",
+        "https://www.onxxdatas.space",
         "http://localhost:3000",
         "http://localhost:8000",
     ],
